@@ -1,0 +1,19 @@
+[project]
+name = "govwin-frontend"
+version = "0.1.0"
+description = "GovWin Daily Opportunity pull Frontend"
+authors = [
+    {name = "Jonathan Roberts"}
+]
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "streamlit (>=1.45.1,<2.0.0)",
+    "pandas (>=2.3.0,<3.0.0)",
+    "azure-cosmos (>=4.9.0,<5.0.0)"
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
