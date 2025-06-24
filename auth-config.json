@@ -1,0 +1,22 @@
+{
+  "globalValidation": {
+    "requireAuthentication": true,
+    "unauthenticatedClientAction": "RedirectToLoginPage"
+  },
+  "identityProviders": {
+    "azureActiveDirectory": {
+      "enabled": true,
+      "registration": {
+        "openIdIssuer": "https://login.microsoftonline.com/common/v2.0",
+        "clientId": "656ed31b-aff5-4e16-b26c-0a4d1714c76b",
+        "clientSecretSettingName": "azure-client-secret"
+      },
+      "login": {
+        "loginParameters": [
+          "scope=openid profile email",
+          "prompt=select_account"
+        ]
+      }
+    }
+  }
+}

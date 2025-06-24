@@ -35,7 +35,7 @@ def cosmos_client() -> CosmosClient:
 def cosmos_containers():
     db = cosmos_client().get_database_client("govwin")
     return {
-        "opps": db.get_container_client("testing"),
+        "opps": db.get_container_client("opportunities"),
     }
 
 # ─── Get filter options from actual data ─────────────────────────────────────

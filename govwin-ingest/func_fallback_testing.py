@@ -8,8 +8,6 @@ from azure.cosmos import CosmosClient
 
 app = func.FunctionApp()
 
-LOOKBACK_DAYS = 1
-
 def _get_token() -> str:
     resp = requests.post(
         "https://services.govwin.com/neo-ws/oauth/token",
@@ -32,7 +30,7 @@ def _cosmos_container():
         credential=os.getenv("COSMOS_KEY"),
         consistency_level="Session",
     )
-    return client.get_database_client("govwin").get_container_client("opportunities")
+    return client.get_database_client("govwin").get_container_client("testing")
 
 def _extract_psc_code(classification_desc: str) -> str:
     """
@@ -61,7 +59,7 @@ def _extract_psc_code(classification_desc: str) -> str:
     
     return None
 
-@app.schedule(schedule="0 0 6 * * *", arg_name="timer", run_on_startup=False, use_monitor=True)
+@app.schedule(schedule="0 0 6 * * *", arg_name="timer", run_on_startup=True, use_monitor=True)
 def pull_daily(timer: func.TimerRequest):
     logger = logging.getLogger("pull_daily")
     logger.info("🚀 Starting ingest at %s", dt.datetime.utcnow().isoformat())
@@ -69,7 +67,7 @@ def pull_daily(timer: func.TimerRequest):
     token = _get_token()
     headers = {"Authorization": f"Bearer {token}"}
     # by default get last 1 day; override via local.settings if needed
-    date_from = (dt.datetime.utcnow() - dt.timedelta(days=LOOKBACK_DAYS)).strftime("%Y-%m-%d")
+    date_from = (dt.datetime.utcnow() - dt.timedelta(days=3)).strftime("%Y-%m-%d")
     search_terms = [s.strip() for s in os.getenv("SEARCH_TERMS", "").split(",") if s.strip()]
 
     container = _cosmos_container()

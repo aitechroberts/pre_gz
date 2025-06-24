@@ -1,0 +1,307 @@
+{
+    "links": {
+        "webHref": {
+            "href": "https://iq.govwin.com/neo/fbo/view/4029086"
+        },
+        "markedByUsers": {
+            "href": "https://services.govwin.com/neo-ws/opportunities/FBO4029086/markedByUsers"
+        },
+        "relatedDocuments": {
+            "href": "https://services.govwin.com/neo-ws/opportunities/FBO4029086/relatedDocuments"
+        },
+        "contacts": {
+            "href": "https://services.govwin.com/neo-ws/opportunities/FBO4029086/contacts"
+        },
+        "placesOfPerformance": {
+            "href": "https://services.govwin.com/neo-ws/opportunities/FBO4029086/placesOfPerformance"
+        },
+        "govEntity": {
+            "href": "https://services.govwin.com/neo-ws/govEntities/124820"
+        },
+        "assessment": {
+            "href": "https://services.govwin.com/neo-ws/opportunities/FBO4029086/assessment"
+        },
+        "companies": {
+            "href": "https://services.govwin.com/neo-ws/opportunities/FBO4029086/companies"
+        },
+        "milestones": {
+            "href": "https://services.govwin.com/neo-ws/opportunities/FBO4029086/milestones"
+        },
+        "contracts": {
+            "href": "https://services.govwin.com/neo-ws/opportunities/FBO4029086/contracts"
+        }
+    },
+    "classificationCodeDesc": "Z1ND - Maintenance Of Sewage And Waste Facilities",
+    "competitionTypes": [
+        {
+            "id": 39,
+            "title": "Small Bus Set-Aside"
+        }
+    ],
+    "country": "USA",
+    "createdDate": "2025-06-11T17:40:58.690",
+    "description": "<p>Solicitation Number:  </p>  <p>FY2525570122 </p>  <p></p>  <p>Notice Type:  </p>  <p>Combined Synopsis/Solicitation  </p>  <p></p>  <p>Synopsis:  </p>  <p>This is a combined synopsis/solicitation for commercial items in accordance with the format in FAR Subpart 12.6, as supplemented with additional information included in this notice. This announcement constitutes the only solicitation; proposals are being requested and a written solicitation will not be issued separately. <br />  <br /> This solicitation document and its incorporated provisions and clauses are those in effect through Federal Acquisition Circular (FAC) 2025-03 dated January 17, 2025. </p>  <p> <br /> The solicitation number is FY2525570122 and this solicitation is issued as a request for quote (RFQ). <br />  <br /> <strong>This is a 100% Small business Set Aside. </strong>The associated North American Industry Classification System (NAICS) code is 238910 Site Preparation Contractors with a corresponding small business standard of $19.0 million. Only offers from small businesses will be considered for this solicitation. </p>  <p></p>  <p>All vendors must have an active registration in sam.gov at the time of submission in order to be considered. any vendor that does not have an active sam.gov registration will be rejected as non-responsive. </p>  <p></p>  <p>Offer due date/local time: 2:00 PM MST on July 2, 2025. Please reference the solicitation number FY2525570122 in the subject line. Offers shall be emailed to suzette.smith@ibwc.gov. FAXED QUOTES WILL NOT BE ACCEPTED.  </p>  <p></p>  <p>Active Unique Entity ID (UEI#) shall be included with your offer. </p>  <p></p>  <p>Price Sheet shall be included with your quote. <br />  </p>  <p>Only questions submitted by email to suzette.smith@ibwc.gov will be considered. Questions received from Offerors after 3:00 pm Mountain on June 28, 2025, may not be responded to.  <br />  </p>  <p>A site visit is highly encouraged. It may be scheduled by contacting Edi Delgado at edi.delgado@ibwc.gov , schedule Mon-Thursday 8:00am-3:00pm by NLT June 28, 2025. </p>  <p></p>  <p>Please acknowledge the acceptance and understanding of services in accordance with the Schedule in the PWS.  </p>  <p></p>  <p>Provide the name and contact information of the subcontractor, if used. </p>  <p></p>  <p>Description: The International Boundary and Water Commission is seeking a price quote for replacing and upgrading the underground sewer line piping system and the lift station control system at the Falcon Power Plant located in Starr County, Texas. The objective is to enhance the current sewer piping lines and replace the control panel with an electrical feeder and sump pump. </p>  <p></p>  <p></p>  <p>Summary of Scope of Work: </p>  <p>Inspection and Assessment: Calculate the linear feet of underground sewer piping and electrical feeder wire that need to be replaced </p>  <p></p>  <p>Removal and Disposal: Remove and dispose of the current underground sewer lines piping and miscellaneous items </p>  <p></p>  <p>Installation: Provide and install new sewer underground lines piping, replace the lift station control system, and upgrade the sump pump </p>  <p></p>  <p>Testing and Reporting: Inspect and test the new sewer lines piping and lift station control system, and provide a detailed final report with new equipment drawings </p>  <p></p>  <p>Project Location </p>  <p>The project is located at the Falcon Power Plant, FM2098, 1 Reservoir Rd., Falcon Heights, Texas 78545. Access to the site requires crossing through the United States Port of Entry and complying with U.S. Customs and Border Protection requirements.  </p>  <p></p>  <p></p>  <p>Period of Performance </p>  <p>The contractor is expected to complete the work within 180 calendar days after the contract is awarded </p>  <p></p>  <p>Site Conditions and Requirements </p>  <p>Contractors are encouraged to attend a site visit and must use personal protective equipment (PPE) during the visit. The contractor must review and acknowledge all site conditions, including transportation, disposal, handling, and storage of materials </p>  <p></p>  <p></p>  <p>Work Restrictions </p>  <p>Work hours are from 7:00 AM to 5:30 PM, Monday through Friday, excluding federal holidays </p>  <p>The contractor must comply with any directives from the Department of Homeland Security (DHS) in case of security alerts </p>  <p></p>  <p></p>  <p>Quality and Safety Requirements </p>  <p>The contractor is responsible for ensuring compliance with all applicable regulations, including OSHA standards. A safety program must be implemented to protect personnel and property </p>  <p></p>  <p>Deliverables </p>  <p>The contractor must provide a project schedule, procedures for removal and installation, reports, and maintenance recommendations </p>  <p>A final report in PDF format, including new sewer lines piping and lift station control system drawings, must be submitted </p>  <p></p>  <p>Warranty </p>  <p>The contractor must provide a warranty that covers defects in equipment, material, or workmanship for at least one year. </p>  <p></p>  <p></p>  <p></p>  <p>The government will award to the lowest price, technically acceptable, responsible offeror. The Contractor shall provide all labor, material, equipment, subcontract, supervision, and management to perform the requirements of this Performance Work Statement (PWS).  </p>  <p></p>  <p>The Government will award a contract resulting from this solicitation to the responsible Offeror based on Lowest Price Technically Acceptable. Technical acceptability will be based on the Contractor s Technical Approach, Expertise and Qualified Personnel to provide the services, and Past Performance. <br />  </p>  <p>Technical Approach - Quote must demonstrate the technical approach by providing a narrative addressing all the items in the scope. The narrative shall at a minimum include your plan of action, equipment, key team members, and schedule. </p>  <p></p>  <p>Past Performance   Quotes shall demonstrate successful past performance of at least 3 three (3) references for similar projects. The information shall include name of person, company, phone number, email address, and brief description of the project. </p>  <p></p>  <p>Offerors shall meet or exceed and specifications and scope of work of items being quoted. </p>  <p></p>  <p>Failure to submit required technical approach and past performance will deem a proposal non-responsive and no consideration for award will be given. </p>  <p></p>  <p>Offerors shall include a completed copy of the provision at 52.212-3, Offeror Representations and Certifications-Commercial Items, with its offer. NOTE: The Offeror shall complete only paragraph (b) of this provision if the Offeror has completed the annual representations and certification electronically via the System for Award Management (SAM) website accessed through http://www.acuisition.gov. <br />  </p>  <p></p>  <p>INVOICE PROCESSING PLATFORM </p>  <p>The U.S. Section International Boundary and Water Commission (USIBWC) has transitioned to an electronic invoicing system. The Invoice Processing Platform (IPP) is a secure, web-based system provided by the U.S. Department of the Treasury s Bureau of the Fiscal Service in partnership with the Federal Reserve Bank of St. Louis. IPP is available at no cost to any commercial vendor or independent contractor doing business with a participating government agency. </p>  <p></p>  <p>Information concerning accessing the IPP system will be provided at time of award. </p>  <p></p>  <p>END of combined synopsis/solicitation.    </p>  <p></p>  <p>Attachments:  </p>  <p>Performance Work Statement </p>  <p>Price Sheet </p>  <p>Applicable Provisions and Clauses </p>  <p>Wage Determination  </p>  <p>Illustration (1) </p> ",
+    "govEntity": {
+        "id": 124820,
+        "title": "INTERNATIONAL BOUNDARY AND WATER COMMISSION"
+    },
+    "id": "FBO4029086",
+    "iqOppId": 4029086,
+    "noticeHistoryCount": 3,
+    "originalPostedDt": "2025-06-11T17:25:00.000",
+    "primaryNAICS": {
+        "id": "238910",
+        "title": "Site Preparation Contractors",
+        "sizeStandard": "$19.0 million annual receipts"
+    },
+    "primaryRequirement": "Operations & Maintenance",
+    "procurement": "Combined Synopsis/Solicitation",
+    "responseDate": {
+        "timeZone": "US/Eastern",
+        "value": "2025-07-02T16:00:00.000"
+    },
+    "smartTag": "Products & Services > Primary Tags:Water facilities construction services,Water facilities maintenance services,Water infrastructure construction services,Secondary Tags:Electrical trades,Site work services,Water infrastructure maintenance services,",
+    "smartTagObject": [
+        {
+            "id": "851CE5CB-F147-5F2A-999D-24A29455C590",
+            "name": "Wastewater treatment facilities",
+            "type": "Structure",
+            "isPrimary": 0
+        },
+        {
+            "id": "226747D1-FEA0-4D8E-8AC9-2CC6D5BF67DC",
+            "name": "Site work services",
+            "type": "Services",
+            "isPrimary": 0
+        },
+        {
+            "id": "1FCFDC91-1A4B-5370-8A73-343FCDDB8CAB",
+            "name": "Reservoirs",
+            "type": "Structure",
+            "isPrimary": 0
+        },
+        {
+            "id": "9D813064-CD57-4629-996D-3B1A03734573",
+            "name": "Water infrastructure maintenance services",
+            "type": "Services",
+            "isPrimary": 0
+        },
+        {
+            "id": "DBF2FDC1-C513-43B3-9187-563945AB1FC0",
+            "name": "Water infrastructure construction services",
+            "type": "Services",
+            "isPrimary": 1
+        },
+        {
+            "id": "56958C53-092D-43A4-8622-682E1EDD65BF",
+            "name": "Water facilities maintenance services",
+            "type": "Services",
+            "isPrimary": 1
+        },
+        {
+            "id": "6DCF9A58-F157-5D9B-9285-8D353CCE210C",
+            "name": "Pump stations",
+            "type": "Structure",
+            "isPrimary": 0
+        },
+        {
+            "id": "216DC23B-38C0-5B81-8415-9260E253E8F2",
+            "name": "Electrical trades",
+            "type": "Services",
+            "isPrimary": 0
+        },
+        {
+            "id": "0478880E-4B5F-422B-824B-ACE39A4C646C",
+            "name": "Water facilities construction services",
+            "type": "Services",
+            "isPrimary": 1
+        },
+        {
+            "id": "9546F79A-5691-5571-9067-DA3A6D992DA6",
+            "name": "Sewer lines",
+            "type": "Structure",
+            "isPrimary": 0
+        }
+    ],
+    "solicitationDate": {
+        "value": "2025-06-21T14:51:00.000"
+    },
+    "solicitationNumber": "FY2525570122",
+    "sourceURL": "https://sam.gov/opp/655c2709703f4fefa096e787555cffcc/view",
+    "status": "Post-RFP",
+    "title": "Upgrading Sewer Line Piping System & Lift Station",
+    "type": "fbo",
+    "updateDate": "2025-06-21T15:02:41.457",
+    "contractValue": 0,
+    "allNAICSCodes": [
+        {
+            "id": "238910",
+            "title": "Site Preparation Contractors",
+            "sizeStandard": "$19.0 million annual receipts"
+        }
+    ],
+    "source": "SAM.gov",
+    "setAsides": [
+        {
+            "id": 39,
+            "title": "Small Bus Set-Aside"
+        }
+    ],
+    "searchTerm": "personnel action",
+    "relevant": null,
+    "pursued": null,
+    "_rid": "S7kKAO9ni3ABAAAAAAAAAA==",
+    "_self": "dbs/S7kKAA==/colls/S7kKAO9ni3A=/docs/S7kKAO9ni3ABAAAAAAAAAA==/",
+    "_etag": "\"b302e0f7-0000-0100-0000-68583f090000\"",
+    "_attachments": "attachments/",
+    "_ts": 1750613769
+}
+
+{
+    "links": {
+        "webHref": {
+            "href": "https://iq.govwin.com/neo/opportunity/view/254386"
+        },
+        "markedByUsers": {
+            "href": "https://services.govwin.com/neo-ws/opportunities/OPP254386/markedByUsers"
+        },
+        "relatedDocuments": {
+            "href": "https://services.govwin.com/neo-ws/opportunities/OPP254386/relatedDocuments"
+        },
+        "contacts": {
+            "href": "https://services.govwin.com/neo-ws/opportunities/OPP254386/contacts"
+        },
+        "placesOfPerformance": {
+            "href": "https://services.govwin.com/neo-ws/opportunities/OPP254386/placesOfPerformance"
+        },
+        "govEntity": {
+            "href": "https://services.govwin.com/neo-ws/govEntities/147106"
+        },
+        "fboNotices": {
+            "href": "https://services.govwin.com/neo-ws/opportunities/OPP254386/fboNotices"
+        },
+        "sourcedFrom": [
+            {
+                "href": "https://services.govwin.com/neo-ws/opportunities/FBO4003107"
+            }
+        ],
+        "relatedArticles": {
+            "href": "https://services.govwin.com/neo-ws/opportunities/OPP254386/relatedArticles"
+        },
+        "contractVehicles": {
+            "href": "https://services.govwin.com/neo-ws/opportunities/OPP254386/contractVehicles"
+        },
+        "verticals": {
+            "href": "https://services.govwin.com/neo-ws/opportunities/OPP254386/verticals"
+        },
+        "assessment": {
+            "href": "https://services.govwin.com/neo-ws/opportunities/OPP254386/assessment"
+        },
+        "companies": {
+            "href": "https://services.govwin.com/neo-ws/opportunities/OPP254386/companies"
+        },
+        "milestones": {
+            "href": "https://services.govwin.com/neo-ws/opportunities/OPP254386/milestones"
+        },
+        "contracts": {
+            "href": "https://services.govwin.com/neo-ws/opportunities/OPP254386/contracts"
+        }
+    },
+    "awardDate": {
+        "deltekEstimate": "true",
+        "govtEstimate": "false",
+        "value": "2025-10-21T00:00:00.000"
+    },
+    "competitionTypes": [
+        {
+            "id": 40,
+            "title": "Full and Open / Unrestricted"
+        }
+    ],
+    "contractTypes": [
+        {
+            "id": 23,
+            "title": "TBD"
+        }
+    ],
+    "country": "USA",
+    "createdDate": "2025-05-06T12:09:21.820",
+    "description": "<p>The Department of the Air Force, Air Force Global Strike Command, 8th Air Force, 5th Bomb Wing has a requirement for providing a complete, commercially available, off-the-shelf Virtual Scenario Trainer (VST) system to enhance training capabilities for operations support.</p>\n\n<h4>REQUIREMENTS</h4>\n\n<ul>\n\t<li>The virtual Scenario trainer should meet or exceed all the following requirements and must be commercially available requiring no additional development to deploy.</li>\n\t<li>The system must operate as a stand-alone system to communicate between all computers to run the software through a local no internet switch.&nbsp;</li>\n\t<li>Virtual and Terrain Manipulation Software/Liscensing\n\t<ul>\n\t\t<li>\n\t\t<p>Must allow geo space creation of battle space/training locations across the globe that emulates real world locations and terrain.</p>\n\t\t</li>\n\t\t<li>\n\t\t<p>Enables mission planning allowing users to draft 2D and 3D tactic plans for training and allows capability to implement drafted plans during a virtual training scenario.</p>\n\t\t</li>\n\t\t<li>\n\t\t<p>Allow users to develop various frameworks for scenarios using software tools to customize location, terrain, barriers, buildings, vehicles and forces.</p>\n\t\t</li>\n\t\t<li>\n\t\t<p>The software must have the capability of adjusting the terrain and manipulate placement of various vegetation (trees, bushes), buildings (single story houses, two-story houses, and commercial buildings), and man-made objects (Jersey barriers, fences, towers, etc.) that are all rotational, and placeable into the geo space AOR.</p>\n\t\t</li>\n\t\t<li>\n\t\t<p>Each system must have the capability to use and operate each passenger position in various types of vehicles including the turret for all helicopters, pickup trucks, Semi with trailer, JLTVs, Bearcats, etc.</p>\n\t\t</li>\n\t\t<li>\n\t\t<p>Each system must allow each user computer to control their player in a combat action force on force scenarios and have access to various weapon systems assigned to them by the administrator (M4 rifles, M24 snipers, M240B, M249, M320, Mk19, smokes grenades, flash bang grenades)</p>\n\t\t</li>\n\t\t<li>\n\t\t<p>The administrator must be able to manipulate the map location, build on the map (buildings, vegetation, vehicles, manmade objects), be able to assign each user to a posted position or team, ability to control AI blue force or op-for, assign vehicles for in play users and AI forces as well as weapon platforms/Loadouts.</p>\n\t\t</li>\n\t\t<li>\n\t\t<p>Each system must have the ability of a communication headset, and the administrator must be able to assign various communication channels to each team to resemble radio communication.</p>\n\t\t</li>\n\t</ul>\n\t</li>\n\t<li>Administrator Training\n\t<ul>\n\t\t<li>\n\t\t<p>The contractor must provide in person administrator training to a minimum of 3 personnel on how to set up, build, assign personnel, adjust loadout to control scenarios they put together.</p>\n\t\t</li>\n\t</ul>\n\t</li>\n\t<li>\n\t<p>Terrain Training</p>\n\n\t<ul>\n\t\t<li>\n\t\t<p>The contractor must provide an in-person map building/terrain alteration training to a minimum of 10 personnel. This training will teach them how to map various locations in the world as an AOR, placing man-made objects, vegetation and controlling weather of the scenarios.</p>\n\t\t</li>\n\t</ul>\n\t</li>\n\t<li>\n\t<p>Hardware (Computers/Headsets)</p>\n\n\t<ul>\n\t\t<li>\n\t\t<p>The contractor must supply 25 user computers and 1 administrator computer system that must meet the following minimum requirements:</p>\n\n\t\t<ul>\n\t\t\t<li>\n\t\t\t<p>CPU must be equivalent to or better than an Intel Core i9-12900K Ryzen 9 7950X</p>\n\t\t\t</li>\n\t\t\t<li>\n\t\t\t<p>Ram must be equivalent to or better than 64GB DDR4</p>\n\t\t\t</li>\n\t\t\t<li>\n\t\t\t<p>GPU must be equivalent or better than an Nvidia GeForce GTX 1080</p>\n\t\t\t</li>\n\t\t\t<li>\n\t\t\t<p>Disk must be equivalent to or better than 4TB</p>\n\t\t\t</li>\n\t\t\t<li>\n\t\t\t<p>Operating System must be equivalent to or better than Windows 10 64 Bit.</p>\n\t\t\t</li>\n\t\t</ul>\n\t\t</li>\n\t\t<li>The contractor must supply 26 over the ear headsets with a microphone to resemble radio communications for users while active during training scenarios.</li>\n\t</ul>\n\t</li>\n\t<li>Self-contained server\n\t<ul>\n\t\t<li>This server must support both dynamic terrain deformation and enhancement for run times, and the software that handles the geospatial data, runtime data and dynamic terrain changes for streaming or offline data</li>\n\t</ul>\n\t</li>\n\t<li>\n\t<p>Installation</p>\n\n\t<ul>\n\t\t<li>\n\t\t<p>The contractors must send a team to fully set up all the hardware and server at a determined location for the 91 SFG on Minot AFB, ND.</p>\n\t\t</li>\n\t\t<li>\n\t\t<p>The system must be tested and function properly prior to finalizing system set up and conducting the training.</p>\n\t\t</li>\n\t</ul>\n\t</li>\n\t<li>\n\t<p>Sustainment</p>\n\n\t<ul>\n\t\t<li>\n\t\t<p>The contractor must ensure there is technical support available at a minimum telephonically.</p>\n\t\t</li>\n\t\t<li>\n\t\t<p>The contractor must ensure that system updates are able to be secured or sent via hard disk to insert into the computers and downloadable since there will be no internet tied into the system.</p>\n\t\t</li>\n\t</ul>\n\t</li>\n</ul>\n\n<p>&nbsp;</p>\n",
+    "duration": "TBD",
+    "govEntity": {
+        "id": 147106,
+        "title": "5TH BOMB WING"
+    },
+    "id": "OPP254386",
+    "iqOppId": 254386,
+    "oppValue": 0,
+    "primaryNAICS": {
+        "id": "333310",
+        "title": "Commercial and Service Industry Machinery Manufacturing",
+        "sizeStandard": "1000 Employees"
+    },
+    "primaryRequirement": "Education & Training",
+    "procurement": "<p>A set of Questions and Answers were issued on June 20, 2024.</p>\n\n<p>Questions are to be submitted by June 26, 2025. Proposals are due on June 30, 2025 at 11:00 AM CT.</p>\n",
+    "smartTag": "Products & Services > Primary Tags:Training services, Secondary Tags:Administrative training services, Information technology training services, Personnel training, ",
+    "smartTagObject": [
+        {
+            "id": "2DFEDB3E-19D6-55B9-B581-214A89BE697A",
+            "name": "Administrative training services",
+            "type": "Services",
+            "isPrimary": 0
+        },
+        {
+            "id": "BD0F8C55-2AD7-4B5B-B1B5-91856A40740F",
+            "name": "Personnel training",
+            "type": "Services",
+            "isPrimary": 0
+        },
+        {
+            "id": "0C7C247E-FFD7-40F0-B3C0-B06514C932AA",
+            "name": "Information technology training services",
+            "type": "Services",
+            "isPrimary": 0
+        },
+        {
+            "id": "D091E243-9FB8-4300-A497-EF5B505FBE7D",
+            "name": "Training services",
+            "type": "Services",
+            "isPrimary": 1
+        }
+    ],
+    "solicitationDate": {
+        "deltekEstimate": "false",
+        "govtEstimate": "false",
+        "value": "2025-06-12T00:00:00.000"
+    },
+    "solicitationNumber": "F3CTSG5106AW01",
+    "sourceURL": "https://sam.gov/opp/1136d4bcb98841f3a893e95aff3b6b0b/view",
+    "status": "Post-RFP",
+    "title": "VIRTUAL SCENARIO TRAINER INSTALLATION AND TRAINING",
+    "type": "trackedopp",
+    "typeOfAward": "Undetermined",
+    "updateDate": "2025-06-21T12:41:11.747",
+    "contractValue": null,
+    "allNAICSCodes": [
+        {
+            "id": "333310",
+            "title": "Commercial and Service Industry Machinery Manufacturing",
+            "sizeStandard": "1000 Employees"
+        }
+    ],
+    "source": "GovWin Tracked",
+    "setAsides": [
+        {
+            "id": 40,
+            "title": "Full and Open / Unrestricted"
+        }
+    ],
+    "searchTerm": "Personnel Security",
+    "relevant": null,
+    "pursued": null,
+    "_rid": "S7kKAO9ni3AEAAAAAAAAAA==",
+    "_self": "dbs/S7kKAA==/colls/S7kKAO9ni3A=/docs/S7kKAO9ni3AEAAAAAAAAAA==/",
+    "_etag": "\"b4028d5d-0000-0100-0000-685842360000\"",
+    "_attachments": "attachments/",
+    "_ts": 1750614582
+}

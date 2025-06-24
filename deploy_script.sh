@@ -102,10 +102,12 @@ COSMOS_ID=$(az cosmosdb show \
     --output tsv)
 
 # Assign Cosmos DB Built-in Data Contributor role
-az role assignment create \
-    --assignee $APP_IDENTITY \
-    --role "00000000-0000-0000-0000-000000000002" \
-    --scope $COSMOS_ID
+az cosmosdb sql role assignment create \
+    --account-name $COSMOS_ACCOUNT \
+    --resource-group $RESOURCE_GROUP \
+    --role-definition-name "Cosmos DB Built-in Data Contributor" \
+    --principal-id $APP_IDENTITY \
+    --scope "/dbs/govwin"
 
 # 8. Get the app URL first
 APP_URL=$(az containerapp show \
