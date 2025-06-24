@@ -11,14 +11,16 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements first for better caching
-COPY streamlit/requirements.txt .
+COPY requirements.txt .
 
 # Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application code from streamlit directory
-COPY streamlit/dashboard.py .
-COPY streamlit/.streamlit/ .streamlit/
+COPY app.py .
+COPY cards.py .
+COPY data_access.py .
+COPY .streamlit/ .streamlit/
 
 # Create non-root user for security
 RUN useradd --create-home --shell /bin/bash appuser && chown -R appuser:appuser /app
