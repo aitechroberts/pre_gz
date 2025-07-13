@@ -13,7 +13,7 @@ FUNC_APP="govwin-ingest-func"
 PLAN="Y1"                                 # Consumption
 ACR="govwinacr"
 CA_ENV="govwin-env"
-CA_DASH="govwin-dashboard"
+CA_DASH="govwin-opportunity-dashboard"
 IMAGE_TAG="v1"
 az storage account show-connection-string \
   --name $STORAGE \

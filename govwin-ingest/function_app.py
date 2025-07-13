@@ -8,7 +8,7 @@ from azure.cosmos import CosmosClient
 
 app = func.FunctionApp()
 
-LOOKBACK_DAYS = 1
+LOOKBACK_DAYS = 2
 
 def _get_token() -> str:
     resp = requests.post(
@@ -61,7 +61,7 @@ def _extract_psc_code(classification_desc: str) -> str:
     
     return None
 
-@app.schedule(schedule="0 0 6 * * *", arg_name="timer", run_on_startup=False, use_monitor=True)
+@app.schedule(schedule="0 0 6 * * *", arg_name="timer", run_on_startup=True, use_monitor=True)
 def pull_daily(timer: func.TimerRequest):
     logger = logging.getLogger("pull_daily")
     logger.info("🚀 Starting ingest at %s", dt.datetime.utcnow().isoformat())
