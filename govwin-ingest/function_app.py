@@ -8,7 +8,7 @@ from azure.cosmos import CosmosClient
 
 app = func.FunctionApp()
 
-LOOKBACK_DAYS = 2
+LOOKBACK_DAYS = 1
 
 def _get_token() -> str:
     resp = requests.post(
@@ -32,7 +32,7 @@ def _cosmos_container():
         credential=os.getenv("COSMOS_KEY"),
         consistency_level="Session",
     )
-    return client.get_database_client("govwin").get_container_client("opportunities")
+    return client.get_database_client("govwin").get_container_client("opportunities_optimized")
 
 def _extract_psc_code(classification_desc: str) -> str:
     """
@@ -162,6 +162,9 @@ def pull_daily(timer: func.TimerRequest):
                 opp["ingestedAt"] = dt.datetime.utcnow().isoformat() 
                 opp["relevant"]   = None
                 opp["pursued"]    = None
+                opp["seenBy"]    = {}
+                opp["userSaves"] = []
+                opp["archived"] = {}
 
                 logger.info(
                     "   ⬆️ Upserting opp id=%s (type=%s, source=%s, contractValue=%s, naicsCount=%d, pscCode=%s)",
