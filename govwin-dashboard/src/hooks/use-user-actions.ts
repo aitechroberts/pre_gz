@@ -1,44 +1,22 @@
 // src/hooks/use-user-actions.ts
-import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { OpportunityDocument } from '@/lib/types';
-
-export function useMarkViewed() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async ({ opportunityId, userId }: { opportunityId: string; userId: string }) => {
-      const response = await fetch(`/api/opportunities/${opportunityId}/seen`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ userId }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to mark opportunity as viewed');
-      }
-
-      return response.json();
-    },
-    onSuccess: () => {
-      // Simple cache invalidation - refetches opportunities
-      queryClient.invalidateQueries({ queryKey: ['opportunities'] });
-    },
-  });
-}
 
 export function useMarkSeen() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ opportunityId, userId }: { opportunityId: string; userId: string }) => {
+    mutationFn: async ({ opportunityId, userId, partitionDate }: { 
+      opportunityId: string; 
+      userId: string; 
+      partitionDate: string; 
+    }) => {
       const response = await fetch(`/api/opportunities/${opportunityId}/seen`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ userId }),
+        body: JSON.stringify({ userId, partitionDate }),
       });
 
       if (!response.ok) {
@@ -47,9 +25,32 @@ export function useMarkSeen() {
 
       return response.json();
     },
-    onSuccess: () => {
-      // Simple cache invalidation - refetches opportunities
-      queryClient.invalidateQueries({ queryKey: ['opportunities'] });
+    onSuccess: (data, variables) => {
+      // Optimistically update the cache
+      queryClient.setQueryData(['opportunities'], (oldData: any) => {
+        if (!oldData) return oldData;
+
+        return {
+          ...oldData,
+          pages: oldData.pages.map((page: any) => ({
+            ...page,
+            data: {
+              ...page.data,
+              opportunities: page.data.opportunities.map((opp: OpportunityDocument) => 
+                opp.id === variables.opportunityId
+                  ? {
+                      ...opp,
+                      seenBy: {
+                        ...opp.seenBy,
+                        [variables.userId]: new Date().toISOString()
+                      }
+                    }
+                  : opp
+              )
+            }
+          }))
+        };
+      });
     },
   });
 }
@@ -58,13 +59,17 @@ export function useToggleSaved() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ opportunityId, userId }: { opportunityId: string; userId: string }) => {
+    mutationFn: async ({ opportunityId, userId, partitionDate }: { 
+      opportunityId: string; 
+      userId: string; 
+      partitionDate: string; 
+    }) => {
       const response = await fetch(`/api/opportunities/${opportunityId}/save`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ userId }),
+        body: JSON.stringify({ userId, partitionDate }),
       });
 
       if (!response.ok) {
@@ -73,9 +78,40 @@ export function useToggleSaved() {
 
       return response.json();
     },
-    onSuccess: () => {
-      // Simple cache invalidation - refetches opportunities
-      queryClient.invalidateQueries({ queryKey: ['opportunities'] });
+    onSuccess: (data, variables) => {
+      // Optimistically update the cache
+      queryClient.setQueryData(['opportunities'], (oldData: any) => {
+        if (!oldData) return oldData;
+
+        return {
+          ...oldData,
+          pages: oldData.pages.map((page: any) => ({
+            ...page,
+            data: {
+              ...page.data,
+              opportunities: page.data.opportunities.map((opp: OpportunityDocument) => {
+                if (opp.id === variables.opportunityId) {
+                  const userSaves = opp.userSaves || [];
+                  const isSaved = userSaves.includes(variables.userId);
+                  
+                  return {
+                    ...opp,
+                    userSaves: isSaved
+                      ? userSaves.filter(id => id !== variables.userId)
+                      : [...userSaves, variables.userId],
+                    seenBy: {
+                      ...opp.seenBy,
+                      [variables.userId]: new Date().toISOString()
+                    }
+                    // 🆕 NO LONGER: Don't touch relevant or archived fields
+                  };
+                }
+                return opp;
+              })
+            }
+          }))
+        };
+      });
     },
   });
 }
@@ -84,24 +120,62 @@ export function useArchiveOpportunity() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ opportunityId, userId }: { opportunityId: string; userId: string }) => {
+    mutationFn: async ({ opportunityId, userId, partitionDate }: { 
+      opportunityId: string; 
+      userId: string; 
+      partitionDate: string; 
+    }) => {
       const response = await fetch(`/api/opportunities/${opportunityId}/archive`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ userId }),
+        body: JSON.stringify({ userId, partitionDate }),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to archive opportunity');
+        throw new Error('Failed to toggle archive status');
       }
 
       return response.json();
     },
-    onSuccess: () => {
-      // Simple cache invalidation - refetches opportunities
-      queryClient.invalidateQueries({ queryKey: ['opportunities'] });
+    onSuccess: (data, variables) => {
+      // Optimistically update the cache  
+      queryClient.setQueryData(['opportunities'], (oldData: any) => {
+        if (!oldData) return oldData;
+
+        return {
+          ...oldData,
+          pages: oldData.pages.map((page: any) => ({
+            ...page,
+            data: {
+              ...page.data,
+              opportunities: page.data.opportunities.map((opp: OpportunityDocument) => 
+                opp.id === variables.opportunityId
+                  ? {
+                      ...opp,
+                      archived: (() => {
+                        const currentArchived = opp.archived || {};
+                        if (currentArchived[variables.userId]) {
+                          // Unarchive: remove user from archived object
+                          const { [variables.userId]: removed, ...rest } = currentArchived;
+                          return rest;
+                        } else {
+                          // Archive: add user to archived object
+                          return { ...currentArchived, [variables.userId]: new Date().toISOString() };
+                        }
+                      })(),
+                      seenBy: {
+                        ...opp.seenBy,
+                        [variables.userId]: new Date().toISOString()
+                      }
+                    }
+                  : opp
+              )
+            }
+          }))
+        };
+      });
     },
   });
 }
@@ -110,62 +184,66 @@ export function usePursueOpportunity() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ opportunityId, userId }: { opportunityId: string; userId: string }) => {
+    mutationFn: async ({ opportunityId, userId, partitionDate }: { 
+      opportunityId: string; 
+      userId: string; 
+      partitionDate: string; 
+    }) => {
       const response = await fetch(`/api/opportunities/${opportunityId}/pursue`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ userId }),
+        body: JSON.stringify({ userId, partitionDate }),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to toggle opportunity pursued state');
+        throw new Error('Failed to toggle pursue status');
       }
 
       return response.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['opportunities'] });
-    },
-  });
-}
+    onSuccess: (data, variables) => {
+      // Optimistically update the cache
+      queryClient.setQueryData(['opportunities'], (oldData: any) => {
+        if (!oldData) return oldData;
 
-export function useBulkPursue() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async ({ userId }: { userId: string }) => {
-      const response = await fetch(`/api/opportunities/pursue/bulk`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ userId }),
+        return {
+          ...oldData,
+          pages: oldData.pages.map((page: any) => ({
+            ...page,
+            data: {
+              ...page.data,
+              opportunities: page.data.opportunities.map((opp: OpportunityDocument) => 
+                opp.id === variables.opportunityId
+                  ? {
+                      ...opp,
+                      // 🆕 NEW: Toggle pursued status
+                      pursued: (() => {
+                        const currentPursued = opp.pursued || {};
+                        if (currentPursued[variables.userId]) {
+                          // Remove user from pursued (unpursue)
+                          const { [variables.userId]: removed, ...rest } = currentPursued;
+                          return rest;
+                        } else {
+                          // Add user to pursued (pursue)
+                          return { ...currentPursued, [variables.userId]: new Date().toISOString() };
+                        }
+                      })(),
+                      seenBy: {
+                        ...opp.seenBy,
+                        [variables.userId]: new Date().toISOString()
+                      }
+                    }
+                  : opp
+              )
+            }
+          }))
+        };
       });
-
-      if (!response.ok) {
-        throw new Error('Failed to bulk pursue opportunities');
-      }
-
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['opportunities'] });
     },
   });
 }
 
-export function useGetPursuedList(userId: string) {
-  return useQuery({
-    queryKey: ['pursued-opportunities', userId],
-    queryFn: async () => {
-      const response = await fetch(`/api/opportunities/pursued?userId=${userId}`);
-      if (!response.ok) {
-        throw new Error('Failed to fetch pursued opportunities');
-      }
-      return response.json();
-    },
-    enabled: !!userId, // Only run query if userId exists
-  });
-}
+// 🔄 LEGACY: Keep old hook names for backward compatibility
+export const useMarkViewed = useMarkSeen;

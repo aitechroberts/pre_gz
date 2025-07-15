@@ -1,5 +1,5 @@
-// src/app/api/opportunities/[id]/archive/route.ts
-import { NextRequest, NextResponse } from 'next/server';
+// app/api/opportunities/[id]/archive/route.ts
+import { NextRequest } from 'next/server';
 import { cosmosService } from '@/lib/cosmos';
 
 export async function PUT(
@@ -7,30 +7,33 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
-    const { userId } = await request.json();
-    const { id } = await params; // ← Fix: await params first
+    const { userId, partitionDate } = await request.json();
     
     if (!userId) {
-      return NextResponse.json(
-        { success: false, error: 'User ID is required' },
+      return Response.json(
+        { error: 'userId is required' }, 
         { status: 400 }
       );
     }
 
-    const archived = await cosmosService.archiveOpportunity(id, userId); // ← Use id
+    if (!partitionDate) {
+      return Response.json(
+        { error: 'partitionDate is required' }, 
+        { status: 400 }
+      );
+    }
+
+    const result = await cosmosService.toggleOpportunityArchived(params.id, userId, partitionDate);
     
-    return NextResponse.json({
-      success: true,
-      data: { archived }
+    return Response.json({ 
+      success: result,
+      message: result ? 'Opportunity archived/unarchived successfully' : 'Failed to update opportunity'
     });
+    
   } catch (error) {
-    console.error('API Error:', error);
-    return NextResponse.json(
-      { 
-        success: false, 
-        error: 'Failed to archive opportunity',
-        message: error instanceof Error ? error.message : 'Unknown error'
-      },
+    console.error('Error in archive route:', error);
+    return Response.json(
+      { error: 'Internal server error' }, 
       { status: 500 }
     );
   }

@@ -9,6 +9,7 @@ import {
   ExternalLink, 
   Building, 
   Archive,
+  ArchiveRestore,
   Users,
   Eye, 
   Bookmark,
@@ -39,8 +40,8 @@ export function OpportunityCard({
   userId, 
   isExpanded = false,
   onToggleExpanded,
-  showSeenTracking = true,        // Default to current behavior
-  showPursueButton = false,       // Default off
+  showSeenTracking = true,
+  showPursueButton = false,
   pageType = 'dashboard'
 }: OpportunityCardProps) {
   const [copiedSolicitation, setCopiedSolicitation] = useState(false);
@@ -49,40 +50,62 @@ export function OpportunityCard({
   const archiveOpportunityMutation = useArchiveOpportunity();
   const pursueOpportunityMutation = usePursueOpportunity();
 
-
+  // 🆕 NEW: Use the improved data model
   const isSaved = (opportunity.userSaves || []).includes(userId);
   const isArchived = (opportunity.archived || {})[userId] != null;
+  const isPursued = (opportunity.pursued || {})[userId] != null;
   const hasBeenSeen = (opportunity.seenBy || {})[userId] != null;
   const seenByUsers = Object.keys(opportunity.seenBy || {});
-  const isPursued = opportunity.pursued === true;
 
-// Debug logging - add this temporarily
+  // Debug logging - remove after testing
   console.log('OpportunityCard Debug:', {
-  userId,
-  opportunityId: opportunity.id,
-  isSaved,
-  isArchived,
-  hasBeenSeen,
-  seenByUsers
+    userId,
+    opportunityId: opportunity.id,
+    isSaved,
+    isArchived,
+    isPursued,
+    hasBeenSeen,
+    seenByUsers,
+    relevant: opportunity.relevant
   });
 
   const handleCardExpanded = () => {
-    // Mark as seen when card is opened
     console.log('Card expanded!', { opportunityId: opportunity.id, userId, hasBeenSeen });
-    if (showSeenTracking &&!hasBeenSeen) {
-      markSeenMutation.mutate({ opportunityId: opportunity.id, userId });
+    if (showSeenTracking && !hasBeenSeen) {
+      markSeenMutation.mutate({ 
+        opportunityId: opportunity.id, 
+        userId,
+        partitionDate: opportunity.partitionDate 
+      });
     }
     onToggleExpanded?.();
   };
 
   const handleArchive = () => {
-    console.log('Archive button clicked!', { opportunityId: opportunity.id, userId });
-    archiveOpportunityMutation.mutate({ opportunityId: opportunity.id, userId });
+    console.log('Archive button clicked!', { opportunityId: opportunity.id, userId, currentlyArchived: isArchived });
+    archiveOpportunityMutation.mutate({ 
+      opportunityId: opportunity.id, 
+      userId,
+      partitionDate: opportunity.partitionDate 
+    });
   };
 
   const handleToggleSaved = () => {
-    console.log('Save button clicked!', { opportunityId: opportunity.id, userId });
-    toggleSavedMutation.mutate({ opportunityId: opportunity.id, userId });
+    console.log('Save button clicked!', { opportunityId: opportunity.id, userId, currentlySaved: isSaved });
+    toggleSavedMutation.mutate({ 
+      opportunityId: opportunity.id, 
+      userId,
+      partitionDate: opportunity.partitionDate 
+    });
+  };
+
+  const handlePursue = () => {
+    console.log('Pursue button clicked!', { opportunityId: opportunity.id, userId, currentlyPursued: isPursued });
+    pursueOpportunityMutation.mutate({ 
+      opportunityId: opportunity.id, 
+      userId,
+      partitionDate: opportunity.partitionDate 
+    });
   };
 
   const handleCopySolicitation = async () => {
@@ -95,10 +118,6 @@ export function OpportunityCard({
         console.error('Failed to copy solicitation number');
       }
     }
-  };
-  
-  const handlePursue = () => {
-    pursueOpportunityMutation.mutate({ opportunityId: opportunity.id, userId });
   };
 
   const formatCurrency = (value: number) => {
@@ -146,274 +165,291 @@ export function OpportunityCard({
     }
   };
 
+  // 🆕 NEW: Visual indicators for combined states
+  const getCardBorderClass = () => {
+    if (isPursued) return 'border-green-300 bg-green-50';
+    if (isArchived) return 'border-red-300 bg-red-50';
+    if (isSaved) return 'border-yellow-300 bg-yellow-50';
+    if (hasBeenSeen) return 'border-gray-200 bg-gray-50';
+    return 'border-blue-200 bg-white';
+  };
+
   return (
-    <Card className={`transition-all duration-200 hover:shadow-md ${hasBeenSeen ? 'opacity-75' : ''}`}>
-      <CardHeader className="pb-4">
-        <div className="flex items-start justify-between gap-4">
+    <Card className={`transition-all duration-200 hover:shadow-md ${getCardBorderClass()}`}>
+      <CardHeader className="pb-3">
+        <div className="flex justify-between items-start gap-4">
           <div className="flex-1 min-w-0">
-            <button
-              onClick={handleCardExpanded}
-              className="text-left w-full group"
-            >
-              <h3 className="font-semibold text-lg leading-tight group-hover:text-blue-600 transition-colors mb-2">
-                {opportunity.title}
-              </h3>
-            </button>
-            
-            {/* Contract Value and Status Row */}
-            <div className="flex flex-wrap items-center gap-3 mb-3">
-              <span className="font-bold text-lg text-green-600">
-                {formatCurrency(opportunity.contractValue || 0)}
-              </span>
+            <div className="flex items-center gap-2 mb-2">
               <Badge variant="outline" className={getStatusColor(opportunity.status)}>
-                {opportunity.status || 'Unknown Status'}
+                {opportunity.status || 'Unknown'}
               </Badge>
-              <Badge variant="outline">
+              <Badge variant="secondary" className="text-xs">
                 {opportunity.source}
               </Badge>
-              {opportunity.typeOfAward && opportunity.typeOfAward !== 'Other' && (
-                <Badge variant="outline" className="bg-purple-100 text-purple-800">
-                  {opportunity.typeOfAward}
+              {opportunity.contractValue && (
+                <Badge variant="outline" className="text-green-700 bg-green-50 border-green-200">
+                  <DollarSign className="w-3 h-3 mr-1" />
+                  {formatCurrency(opportunity.contractValue)}
+                </Badge>
+              )}
+              
+              {/* 🆕 NEW: Status indicators */}
+              {isPursued && (
+                <Badge className="bg-green-600 text-white text-xs">
+                  Pursuing
+                </Badge>
+              )}
+              {isArchived && (
+                <Badge variant="outline" className="bg-red-100 text-red-800 border-red-300 text-xs">
+                  Archived
                 </Badge>
               )}
             </div>
-
-            {/* seenBy Tags */}
-            <div className="flex items-center gap-2 mb-2">
-              <Users size={14} className="text-gray-500" />
-              <span className="text-xs text-gray-500">Seen by:</span>
-              <div className="flex flex-wrap gap-1">
-                {seenByUsers.length === 0 ? (
-                  <Badge variant="outline" className="text-xs px-1.5 py-0.5 h-5 text-gray-400">
-                    Not seen
-                  </Badge>
-                ) : (
-                  <>
-                    {seenByUsers.slice(0, 3).map((seenUserId) => (
-                      <Badge 
-                        key={seenUserId} 
-                        variant="outline" 
-                        className="text-xs px-1.5 py-0.5 h-5"
-                      >
-                        {seenUserId === userId ? "You" : seenUserId.slice(0, 8)}
-                      </Badge>
-                    ))}
-                    {seenByUsers.length > 3 && (
-                      <Badge variant="outline" className="text-xs px-1.5 py-0.5 h-5">
-                        +{seenByUsers.length - 3} more
-                      </Badge>
-                    )}
-                  </>
-                )}
+            
+            <h3 className="font-semibold text-lg leading-tight text-gray-900 mb-2 cursor-pointer hover:text-blue-600" 
+                onClick={handleCardExpanded}>
+              {opportunity.title}
+            </h3>
+            
+            <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600">
+              <div className="flex items-center gap-1">
+                <Calendar className="w-4 h-4" />
+                <span>Posted: {formatDate(opportunity.postedDate)}</span>
               </div>
+              {opportunity.dueDate && (
+                <div className="flex items-center gap-1">
+                  <Clock className="w-4 h-4" />
+                  <span>Due: {formatDate(opportunity.dueDate)}</span>
+                </div>
+              )}
+              {opportunity.primaryNAICS?.id && (
+                <div className="flex items-center gap-1">
+                  <Tag className="w-4 h-4" />
+                  <span>NAICS: {opportunity.primaryNAICS.id}</span>
+                </div>
+              )}
             </div>
           </div>
           
-          <div className="flex items-center gap-2 flex-shrink-0">
-            {/* Archive button */}
+          {/* 🆕 NEW: Improved User Actions */}
+          <div className="flex items-start gap-2">
+            {/* Archive/Unarchive button */}
             <Button
-                variant={isArchived ? "default" : "ghost"}
-                size="sm"
-                onClick={handleArchive}
-                disabled={archiveOpportunityMutation.isPending}
-                className={isArchived ? 'bg-red-600 hover:bg-red-700 text-white' : 'text-gray-500 hover:text-red-600'}
+              variant={isArchived ? "default" : "ghost"}
+              size="sm"
+              onClick={handleArchive}
+              disabled={archiveOpportunityMutation.isPending}
+              className={isArchived 
+                ? 'bg-red-600 hover:bg-red-700 text-white' 
+                : 'text-gray-500 hover:text-red-600'
+              }
+              title={isArchived ? "Unarchive opportunity" : "Archive opportunity"}
             >
-                <Archive size={20} />
+              {isArchived ? <ArchiveRestore size={20} /> : <Archive size={20} />}
             </Button>
 
-            {/* Save button - only show on dashboard */}
-            {pageType === 'dashboard' && (
-            <Button
+            {/* Save button - show on dashboard or if already saved */}
+            {(pageType === 'dashboard' || isSaved) && (
+              <Button
                 variant={isSaved ? "default" : "ghost"}
                 size="sm"
                 onClick={handleToggleSaved}
                 disabled={toggleSavedMutation.isPending}
-                className={isSaved ? 'bg-yellow-500 hover:bg-yellow-600 text-white' : 'text-gray-500 hover:text-yellow-600'}
-            >
+                className={isSaved 
+                  ? 'bg-yellow-500 hover:bg-yellow-600 text-white' 
+                  : 'text-gray-500 hover:text-yellow-600'
+                }
+                title={isSaved ? "Remove from saved" : "Save opportunity"}
+              >
                 {isSaved ? <BookmarkCheck size={20} /> : <Bookmark size={20} />}
-            </Button>
+              </Button>
             )}
-            {/* Pursue button - only show if showPursueButton is true */}
+
+            {/* Pursue button - show if enabled */}
             {showPursueButton && (
-            <Button
+              <Button
                 variant={isPursued ? "default" : "ghost"}
                 size="sm"
                 onClick={handlePursue}
                 disabled={pursueOpportunityMutation.isPending}
-                className={isPursued ? 'bg-green-600 hover:bg-green-700 text-white' : 'text-gray-500 hover:text-green-600'}
-            >
+                className={isPursued 
+                  ? 'bg-green-600 hover:bg-green-700 text-white' 
+                  : 'text-gray-500 hover:text-green-600'
+                }
+                title={isPursued ? "Stop pursuing" : "Mark as pursuing"}
+              >
                 <Target size={20} />
-            </Button>
+              </Button>
             )}
-            </div>
+          </div>
         </div>
       </CardHeader>
 
-      <CardContent className="pt-0">
-        {/* Detailed Information - Only show when expanded */}
-        {isExpanded && (
-          <div className="space-y-3 mb-4">
-            {/* Agency */}
-            {opportunity.govEntity?.title && (
-              <div className="flex items-start gap-2">
-                <Building size={16} className="text-gray-500 mt-0.5 flex-shrink-0" />
+      {isExpanded && (
+        <CardContent className="pt-0">
+          <div className="space-y-4">
+            {/* Description */}
+            {opportunity.description && (
+              <div>
+                <h4 className="font-medium text-gray-900 mb-2 flex items-center gap-1">
+                  <FileText className="w-4 h-4" />
+                  Description
+                </h4>
+                <p className="text-gray-700 text-sm leading-relaxed">
+                  {opportunity.description}
+                </p>
+              </div>
+            )}
+
+            {/* Agency & Location */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {opportunity.agency && (
                 <div>
-                  <span className="font-medium text-gray-700">Agency:</span>
-                  <span className="ml-2">{opportunity.govEntity.title}</span>
+                  <h4 className="font-medium text-gray-900 mb-1 flex items-center gap-1">
+                    <Building className="w-4 h-4" />
+                    Agency
+                  </h4>
+                  <p className="text-gray-700 text-sm">{opportunity.agency}</p>
+                </div>
+              )}
+
+              {opportunity.officeLocation && (
+                <div>
+                  <h4 className="font-medium text-gray-900 mb-1">Office Location</h4>
+                  <p className="text-gray-700 text-sm">{opportunity.officeLocation}</p>
+                </div>
+              )}
+            </div>
+
+            {/* NAICS Codes */}
+            {opportunity.allNAICSCodes && opportunity.allNAICSCodes.length > 0 && (
+              <div>
+                <h4 className="font-medium text-gray-900 mb-2">NAICS Codes</h4>
+                <div className="flex flex-wrap gap-2">
+                  {opportunity.allNAICSCodes.map((naics, idx) => (
+                    <Badge key={idx} variant="outline" className="text-xs">
+                      {naics}
+                    </Badge>
+                  ))}
                 </div>
               </div>
             )}
 
-            {/* Classification Info */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Set Asides */}
+            {opportunity.setAsides && opportunity.setAsides.length > 0 && (
               <div>
-                <div className="flex items-start gap-2 mb-2">
-                  <Tag size={16} className="text-gray-500 mt-0.5 flex-shrink-0" />
-                  <div>
-                    <span className="font-medium text-gray-700">PSC:</span>
-                    <span className="ml-2">{opportunity.classificationCodeDesc || 'N/A'}</span>
-                  </div>
-                </div>
-                
-                <div className="flex items-start gap-2">
-                  <Tag size={16} className="text-gray-500 mt-0.5 flex-shrink-0" />
-                  <div>
-                    <span className="font-medium text-gray-700">NAICS:</span>
-                    <span className="ml-2">
-                      {opportunity.primaryNAICS.id} – {opportunity.primaryNAICS.title}
-                    </span>
-                  </div>
+                <h4 className="font-medium text-gray-900 mb-2">Set Asides</h4>
+                <div className="flex flex-wrap gap-2">
+                  {opportunity.setAsides.map((setAside, idx) => (
+                    <Badge key={idx} variant="secondary" className="text-xs">
+                      {setAside}
+                    </Badge>
+                  ))}
                 </div>
               </div>
+            )}
 
+            {/* Contact Info */}
+            {opportunity.contactInfo && (
               <div>
-                {/* Response Deadline */}
-                {(opportunity.responseDate?.value || opportunity.dueDate) && (
-                  <div className="flex items-start gap-2 mb-2">
-                    <Clock size={16} className="text-red-500 mt-0.5 flex-shrink-0" />
-                    <div>
-                      <span className="font-medium text-gray-700">Response Deadline:</span>
-                      <span className="ml-2">
-                        {opportunity.responseDate?.value 
-                          ? format(parseISO(opportunity.responseDate.value), 'M/d/yyyy HH:mm')
-                          : opportunity.dueDate 
-                            ? format(parseISO(opportunity.dueDate), 'M/d/yyyy HH:mm')
-                            : 'Unknown'
-                        }
-                      </span>
-                    </div>
-                  </div>
-                )}
-
-                {/* Set-Asides */}
-                <div className="flex items-start gap-2">
-                  <FileText size={16} className="text-gray-500 mt-0.5 flex-shrink-0" />
-                  <div>
-                    <span className="font-medium text-gray-700">Set-Asides:</span>
-                    <span className="ml-2">
-                      {opportunity.setAsides && opportunity.setAsides.length > 0 
-                        ? opportunity.setAsides.map(sa => typeof sa === 'string' ? sa : sa.title).join(', ')
-                        : 'N/A'
-                      }
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Dates Row */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="flex items-center gap-2">
-                  <Calendar size={16} className="text-blue-600 flex-shrink-0" />
-                  <span className="font-medium text-gray-700">Posted:</span>
-                  <span>{opportunity.partitionDate ? format(new Date(opportunity.partitionDate), 'M/d/yyyy') : 'Unknown'}</span>
-              </div>
-              
-              <div className="flex items-center gap-2">
-                  <Calendar size={16} className="text-red-600 flex-shrink-0" />
-                  <span className="font-medium text-gray-700">Due Date:</span>
-                  <span>
-                  {opportunity.responseDate?.value 
-                      ? format(parseISO(opportunity.responseDate.value), 'M/d/yyyy')
-                      : opportunity.dueDate 
-                      ? format(parseISO(opportunity.dueDate), 'M/d/yyyy')
-                      : 'Unknown'
-                  }
-                  </span>
-              </div>
-            </div>
-
-            {/* Solicitation Number with Copy */}
-            {opportunity.solicitationNumber && (
-              <div className="flex items-center gap-2">
-                <FileText size={16} className="text-gray-500 flex-shrink-0" />
-                <span className="font-medium text-gray-700">Solicitation #:</span>
-                <span className="font-mono">{opportunity.solicitationNumber}</span>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleCopySolicitation}
-                  className="h-6 w-6 p-0"
-                >
-                  {copiedSolicitation ? (
-                    <Check size={14} className="text-green-600" />
-                  ) : (
-                    <Copy size={14} className="text-gray-500" />
+                <h4 className="font-medium text-gray-900 mb-2">Contact Information</h4>
+                <div className="text-sm text-gray-700 space-y-1">
+                  {opportunity.contactInfo.name && (
+                    <div><strong>Name:</strong> {opportunity.contactInfo.name}</div>
                   )}
-                </Button>
-              </div>
-            )}
-
-            {/* Search Term */}
-            {opportunity.searchTerm && (
-              <div className="flex items-center gap-2">
-                <Tag size={16} className="text-blue-500 flex-shrink-0" />
-                <span className="font-medium text-gray-700">Search Term:</span>
-                <Badge variant="outline" className="bg-blue-50 text-blue-700">
-                  {opportunity.searchTerm}
-                </Badge>
-              </div>
-            )}
-
-            {/* Primary Tags */}
-            {opportunity.smartTag && (
-              <div className="flex items-start gap-2">
-                <Tag size={16} className="text-purple-500 mt-0.5 flex-shrink-0" />
-                <div>
-                  <span className="font-medium text-gray-700">Primary Tags:</span>
-                  <span className="ml-2 text-sm">{opportunity.smartTag}</span>
+                  {opportunity.contactInfo.email && (
+                    <div><strong>Email:</strong> {opportunity.contactInfo.email}</div>
+                  )}
+                  {opportunity.contactInfo.phone && (
+                    <div><strong>Phone:</strong> {opportunity.contactInfo.phone}</div>
+                  )}
                 </div>
               </div>
             )}
-          </div>
-        )}
 
-        {/* Description - Only visible when expanded, scrollable */}
-        {isExpanded && opportunity.description && (
-          <div className="border-t pt-4 mb-4">
-            <h4 className="font-medium text-gray-700 mb-2">Description</h4>
-            <div 
-              className="text-sm text-gray-600 leading-relaxed prose prose-sm max-w-none max-h-32 overflow-y-auto border border-gray-200 rounded p-3 bg-gray-50"
-              dangerouslySetInnerHTML={{ __html: opportunity.description }}
-            />
-          </div>
-        )}
+            {/* Solicitation Number */}
+            {opportunity.solicitationNumber && (
+              <div>
+                <h4 className="font-medium text-gray-900 mb-2">Solicitation Number</h4>
+                <div className="flex items-center gap-2">
+                  <code className="text-sm bg-gray-100 px-2 py-1 rounded">
+                    {opportunity.solicitationNumber}
+                  </code>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleCopySolicitation}
+                    className="h-6 w-6 p-0"
+                  >
+                    {copiedSolicitation ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                  </Button>
+                </div>
+              </div>
+            )}
 
-        {/* View Source Button - Bottom Left */}
-        {opportunity.sourceURL && (
-          <div className="border-t pt-4">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => window.open(opportunity.sourceURL, '_blank')}
-              className="flex items-center gap-2"
-            >
-              <ExternalLink size={16} />
-              View Source
-            </Button>
+            {/* Source URL */}
+            {opportunity.sourceURL && (
+              <div>
+                <a
+                  href={opportunity.sourceURL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 text-sm"
+                >
+                  <ExternalLink className="w-4 h-4" />
+                  View Original Posting
+                </a>
+              </div>
+            )}
+
+            {/* 🆕 NEW: Enhanced tracking info */}
+            {showSeenTracking && (
+              <div className="border-t pt-3 mt-4">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs text-gray-600">
+                  {seenByUsers.length > 0 && (
+                    <div className="flex items-center gap-1">
+                      <Eye className="w-3 h-3" />
+                      <span>{seenByUsers.length} viewed</span>
+                    </div>
+                  )}
+                  {Object.keys(opportunity.userSaves || {}).length > 0 && (
+                    <div className="flex items-center gap-1">
+                      <Bookmark className="w-3 h-3" />
+                      <span>{(opportunity.userSaves || []).length} saved</span>
+                    </div>
+                  )}
+                  {Object.keys(opportunity.archived || {}).length > 0 && (
+                    <div className="flex items-center gap-1">
+                      <Archive className="w-3 h-3" />
+                      <span>{Object.keys(opportunity.archived || {}).length} archived</span>
+                    </div>
+                  )}
+                  {Object.keys(opportunity.pursued || {}).length > 0 && (
+                    <div className="flex items-center gap-1">
+                      <Target className="w-3 h-3" />
+                      <span>{Object.keys(opportunity.pursued || {}).length} pursuing</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Metadata */}
+            <div className="border-t pt-3 mt-4 text-xs text-gray-500 space-y-1">
+              <div>Search Term: {opportunity.searchTerm}</div>
+              <div>Ingested: {formatDateTime(opportunity.ingestedAt)}</div>
+              {opportunity.updateDate && (
+                <div>Updated: {formatDateTime(opportunity.updateDate)}</div>
+              )}
+              {opportunity.relevant !== null && (
+                <div>
+                  Business Relevance: {opportunity.relevant ? '✅ Relevant' : '❌ Not Relevant'}
+                </div>
+              )}
+            </div>
           </div>
-        )}
-      </CardContent>
+        </CardContent>
+      )}
     </Card>
   );
 }

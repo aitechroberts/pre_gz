@@ -2,6 +2,7 @@
 export interface OpportunityDocument {
   id: string;
   partitionKey: string; // Date-based: "2025-01-15"
+  partitionDate: string; // Date-based partition key: "2025-01-15"
   
   // Core opportunity fields
   title: string;
@@ -37,16 +38,17 @@ export interface OpportunityDocument {
   setAsides: string[];
   competitionTypes?: string[];
   
-  // User interaction tracking
-  userViews: { [userId: string]: string }; // ISO date when viewed
-  userSaves: string[]; // array of user IDs who saved
-  seenBy: { [userId: string]: string }; // ISO date when opportunity was opened/seen
-  archived: { [userId: string]: string };
-
+  // 🆕 NEW: Improved User interaction tracking
+  userSaves: string[];                    // [userId] - who bookmarked this
+  archived: { [userId: string]: string }; // {userId: timestamp} - who archived this  
+  pursued: { [userId: string]: string };  // {userId: timestamp} - who marked as pursued
+  seenBy: { [userId: string]: string };   // {userId: timestamp} - who viewed this
+  
+  // 🆕 NEW: Business assessment (separate from user actions)
+  relevant: boolean | null;               // Business relevance assessment
+  
   // Metadata
   searchTerm: string;
-  relevant?: boolean | null;
-  pursued?: boolean | null;
   
   // Optional fields from GovWin API
   description?: string;
@@ -77,8 +79,9 @@ export interface OpportunityFilters {
   psc: string[];
   status: string[];
   searchTerms: string[];
-  seenFilter: string[];
-  relevantFilter: string[];
+  seenFilter?: 'all' | 'seen' | 'unseen';
+  relevantFilter?: 'all' | 'saved' | 'archived' | 'pursued' | 'unreviewed';
+  archivedFilter?: 'all' | 'archived' | 'unarchived'; // New: separate archive filter
 }
 
 export interface PaginationParams {
@@ -96,7 +99,7 @@ export interface OpportunityResponse {
 export interface UserAction {
   opportunityId: string;
   userId: string;
-  action: 'view' | 'save' | 'unsave' | 'archive' | 'unarchive' | 'mark_seen';
+  action: 'view' | 'save' | 'unsave' | 'archive' | 'unarchive' | 'pursue' | 'unpursue' | 'mark_seen';
   timestamp: string;
 }
 

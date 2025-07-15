@@ -1,5 +1,5 @@
-// src/app/api/opportunities/[id]/seen/route.ts
-import { NextRequest, NextResponse } from 'next/server';
+// app/api/opportunities/[id]/seen/route.ts
+import { NextRequest } from 'next/server';
 import { cosmosService } from '@/lib/cosmos';
 
 export async function PUT(
@@ -7,30 +7,33 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
-    const { userId } = await request.json();
-    const { id } = await params; // ← Fix: await params first
+    const { userId, partitionDate } = await request.json();
     
     if (!userId) {
-      return NextResponse.json(
-        { success: false, error: 'User ID is required' },
+      return Response.json(
+        { error: 'userId is required' }, 
         { status: 400 }
       );
     }
 
-    const updated = await cosmosService.markOpportunitySeen(id, userId); // ← Use id
+    if (!partitionDate) {
+      return Response.json(
+        { error: 'partitionDate is required' }, 
+        { status: 400 }
+      );
+    }
+
+    const result = await cosmosService.markOpportunitySeen(params.id, userId, partitionDate);
     
-    return NextResponse.json({
-      success: true,
-      data: { updated }
+    return Response.json({ 
+      success: result,
+      message: result ? 'Opportunity marked as seen' : 'Failed to mark opportunity as seen'
     });
+    
   } catch (error) {
-    console.error('API Error:', error);
-    return NextResponse.json(
-      { 
-        success: false, 
-        error: 'Failed to mark opportunity as seen',
-        message: error instanceof Error ? error.message : 'Unknown error'
-      },
+    console.error('Error in seen route:', error);
+    return Response.json(
+      { error: 'Internal server error' }, 
       { status: 500 }
     );
   }
