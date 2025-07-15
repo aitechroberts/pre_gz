@@ -157,7 +157,7 @@ def pull_daily(timer: func.TimerRequest):
                 # 7️⃣ Add user-requested fields with better names
                 opp["setAsides"] = opp.get("competitionTypes", [])
 
-                # 8️⃣ Augment with metadata for Streamlit
+                # 8️⃣ Augment with metadata for frontend
                 opp["searchTerm"] = term
                 opp["ingestedAt"] = dt.datetime.utcnow().isoformat() 
                 opp["relevant"]   = None
@@ -165,6 +165,9 @@ def pull_daily(timer: func.TimerRequest):
                 opp["seenBy"]    = {}
                 opp["userSaves"] = []
                 opp["archived"] = {}
+
+                # ✅ ADD THIS: Set partition date for proper partitioning
+                opp["partitionDate"] = dt.datetime.utcnow().strftime("%Y-%m-%d")  # e.g., "2025-07-15"
 
                 logger.info(
                     "   ⬆️ Upserting opp id=%s (type=%s, source=%s, contractValue=%s, naicsCount=%d, pscCode=%s)",
