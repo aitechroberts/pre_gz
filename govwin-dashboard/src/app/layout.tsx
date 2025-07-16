@@ -15,12 +15,12 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <AuthProvider>
-          <WebSocketProvider>
-            <QueryProvider>
+          <QueryProvider>
+            <WebSocketProvider>
               <Navigation />
               <main>{children}</main>
-            </QueryProvider>
-          </WebSocketProvider>
+            </WebSocketProvider>
+          </QueryProvider>
         </AuthProvider>
       </body>
     </html>

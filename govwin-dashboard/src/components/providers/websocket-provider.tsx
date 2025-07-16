@@ -35,7 +35,10 @@ export function WebSocketProvider({ children }: { children: ReactNode }) {
   //    query client instance or currentUserId actually changes.
   // ----------------------------------------------------------------
   const handleMessage = useCallback(
-    (message: any) => {
+    (rawMessage: any) => {
+      // Handle Azure Web PubSub wrapper
+      const message = rawMessage.data || rawMessage;
+      
       if (message.type !== "OPPORTUNITY_UPDATE") return;
 
       const { opportunityId, action, userId, timestamp } = message;
@@ -60,52 +63,72 @@ export function WebSocketProvider({ children }: { children: ReactNode }) {
                     case "seen":
                       return {
                         ...opp,
-                        seenBy: { ...opp.seenBy, [userId]: timestamp },
+                        seenBy: { 
+                          ...(opp.seenBy || {}), 
+                          [userId]: timestamp 
+                        },
                       };
 
                     case "saved":
                       return {
                         ...opp,
-                        userSaves: {
-                          ...opp.userSaves,
+                        userSaves: { ...(opp.userSaves || {}), [userId]: timestamp },
+                        seenBy: {
+                          ...(opp.seenBy || {}),
                           [userId]: timestamp,
                         },
-                        seenBy: { ...opp.seenBy, [userId]: timestamp },
                       };
 
                     case "unsaved": {
-                      const { [userId]: _, ...rest } = opp.userSaves || {};
-                      return { ...opp, userSaves: rest };
+                        // remove the current userId from the object
+                        const { [userId]: _removed, ...rest } = opp.userSaves || {};
+                        return {
+                            ...opp,
+                            userSaves: rest,
+                        };
                     }
+
 
                     case "archived":
                       return {
                         ...opp,
                         archived: {
-                          ...opp.archived,
+                          ...(opp.archived || {}),
                           [userId]: timestamp,
                         },
-                        seenBy: { ...opp.seenBy, [userId]: timestamp },
+                        seenBy: { 
+                          ...(opp.seenBy || {}), 
+                          [userId]: timestamp 
+                        },
                       };
 
                     case "unarchived": {
                       const { [userId]: _, ...rest } = opp.archived || {};
-                      return { ...opp, archived: rest };
+                      return { 
+                        ...opp, 
+                        archived: rest 
+                      };
                     }
 
                     case "pursued":
                       return {
                         ...opp,
                         pursued: {
-                          ...opp.pursued,
+                          ...(opp.pursued || {}),
                           [userId]: timestamp,
                         },
-                        seenBy: { ...opp.seenBy, [userId]: timestamp },
+                        seenBy: { 
+                          ...(opp.seenBy || {}), 
+                          [userId]: timestamp 
+                        },
                       };
 
                     case "unpursued": {
                       const { [userId]: _, ...rest } = opp.pursued || {};
-                      return { ...opp, pursued: rest };
+                      return { 
+                        ...opp, 
+                        pursued: rest 
+                      };
                     }
 
                     default:

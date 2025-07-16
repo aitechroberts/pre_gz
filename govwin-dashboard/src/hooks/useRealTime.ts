@@ -44,14 +44,25 @@ export function useRealTime(onMessage: (data: unknown) => void) {
       const ws = new WebSocket(url);
       socketRef.current = ws;
 
-      ws.onopen = () => setConnected(true);
-      ws.onclose = () => setConnected(false);
-      ws.onerror = () => setConnected(false);
+        ws.onopen = () => { 
+        console.log("✅ WebSocket connected"); 
+        setConnected(true);
+        };
+        ws.onerror = (e) => { 
+        console.error("WebSocket error:", e); 
+        setConnected(false);
+        };
+        ws.onclose = () => { 
+        console.warn("WebSocket closed"); 
+        setConnected(false);
+        };
 
       ws.onmessage = (event: MessageEvent<string>) => {
         try {
-          const data = JSON.parse(event.data);
-          handlerRef.current(data); // always latest callback
+        const raw = JSON.parse(event.data);
+        // If the message has a 'data' field (Azure envelope), unwrap it; otherwise use raw
+        const payload = raw.data ?? raw;
+        handlerRef.current(payload); // call the latest message handler
         } catch (err) {
           console.error("Failed to parse WebSocket payload:", err);
         }
@@ -59,7 +70,6 @@ export function useRealTime(onMessage: (data: unknown) => void) {
     })().catch((err) => {
       console.error("Failed to establish WebSocket:", err);
     });
-
     // cleanup on unmount / user switch
     return () => socketRef.current?.close();
   }, [user]);

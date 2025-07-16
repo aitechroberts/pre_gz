@@ -1,34 +1,35 @@
 // ===== src/app/api/opportunities/[id]/archive/route.ts =====
-import { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { cosmosService } from '@/lib/cosmos';
 import { pubSubClient } from '@/lib/pubsub-server';
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) {
   try {
+    const { id } = await context.params;           // ✅ await before use
     const { userId, partitionDate } = await request.json();
     
     if (!userId || !partitionDate) {
-      return Response.json(
-        { error: 'userId and partitionDate are required' }, 
+      return NextResponse.json(
+        { error: 'userId and partitionDate are required' },
         { status: 400 }
       );
     }
 
-    const newArchivedState = await cosmosService.toggleOpportunityArchived(params.id, userId, partitionDate);
+    const newArchivedState = await cosmosService.toggleOpportunityArchived(id, userId, partitionDate);
     
     // Broadcast the update to all connected clients
     await pubSubClient.sendToAll({
       type: "OPPORTUNITY_UPDATE",
-      opportunityId: params.id,
+      opportunityId: id,
       action: newArchivedState ? "archived" : "unarchived",
       userId,
       timestamp: new Date().toISOString(),
     });
     
-    return Response.json({ 
+    return NextResponse.json({ 
       success: true,
       archived: newArchivedState,
       message: newArchivedState ? 'Opportunity archived' : 'Opportunity unarchived'
@@ -36,7 +37,7 @@ export async function PUT(
     
   } catch (error) {
     console.error('Error in archive route:', error);
-    return Response.json(
+    return NextResponse.json(
       { error: 'Internal server error' }, 
       { status: 500 }
     );
