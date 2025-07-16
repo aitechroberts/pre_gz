@@ -1,4 +1,4 @@
-// src/hooks/use-user-actions.ts
+// hooks/use-user-actions.ts - FIXED VERSION
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { OpportunityDocument } from '@/lib/types';
 
@@ -8,8 +8,8 @@ export function useMarkSeen() {
   return useMutation({
     mutationFn: async ({ opportunityId, userId, partitionDate }: { 
       opportunityId: string; 
-      userId: string; 
-      partitionDate: string; 
+      userId: string;
+      partitionDate: string;
     }) => {
       const response = await fetch(`/api/opportunities/${opportunityId}/seen`, {
         method: 'PUT',
@@ -61,8 +61,8 @@ export function useToggleSaved() {
   return useMutation({
     mutationFn: async ({ opportunityId, userId, partitionDate }: { 
       opportunityId: string; 
-      userId: string; 
-      partitionDate: string; 
+      userId: string;
+      partitionDate: string;
     }) => {
       const response = await fetch(`/api/opportunities/${opportunityId}/save`, {
         method: 'PUT',
@@ -79,7 +79,7 @@ export function useToggleSaved() {
       return response.json();
     },
     onSuccess: (data, variables) => {
-      // Optimistically update the cache
+      // Optimistically update the cache - FIXED to use object format
       queryClient.setQueryData(['opportunities'], (oldData: any) => {
         if (!oldData) return oldData;
 
@@ -91,19 +91,24 @@ export function useToggleSaved() {
               ...page.data,
               opportunities: page.data.opportunities.map((opp: OpportunityDocument) => {
                 if (opp.id === variables.opportunityId) {
-                  const userSaves = opp.userSaves || [];
-                  const isSaved = userSaves.includes(variables.userId);
+                  const userSaves = opp.userSaves || {};
+                  const isSaved = userSaves[variables.userId] != null; // FIXED: check object key
+                  
+                  const newUserSaves = { ...userSaves };
+                  if (isSaved) {
+                    delete newUserSaves[variables.userId]; // FIXED: remove key
+                  } else {
+                    newUserSaves[variables.userId] = new Date().toISOString(); // FIXED: add timestamp
+                  }
                   
                   return {
                     ...opp,
-                    userSaves: isSaved
-                      ? userSaves.filter(id => id !== variables.userId)
-                      : [...userSaves, variables.userId],
+                    userSaves: newUserSaves, // FIXED: object format
                     seenBy: {
                       ...opp.seenBy,
                       [variables.userId]: new Date().toISOString()
                     }
-                    // 🆕 NO LONGER: Don't touch relevant or archived fields
+                    // REMOVED: relevant field updates
                   };
                 }
                 return opp;
@@ -122,8 +127,8 @@ export function useArchiveOpportunity() {
   return useMutation({
     mutationFn: async ({ opportunityId, userId, partitionDate }: { 
       opportunityId: string; 
-      userId: string; 
-      partitionDate: string; 
+      userId: string;
+      partitionDate: string;
     }) => {
       const response = await fetch(`/api/opportunities/${opportunityId}/archive`, {
         method: 'PUT',
@@ -134,13 +139,13 @@ export function useArchiveOpportunity() {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to toggle archive status');
+        throw new Error('Failed to archive opportunity');
       }
 
       return response.json();
     },
     onSuccess: (data, variables) => {
-      // Optimistically update the cache  
+      // Optimistically update the cache - FIXED
       queryClient.setQueryData(['opportunities'], (oldData: any) => {
         if (!oldData) return oldData;
 
@@ -154,21 +159,16 @@ export function useArchiveOpportunity() {
                 opp.id === variables.opportunityId
                   ? {
                       ...opp,
-                      archived: (() => {
-                        const currentArchived = opp.archived || {};
-                        if (currentArchived[variables.userId]) {
-                          // Unarchive: remove user from archived object
-                          const { [variables.userId]: removed, ...rest } = currentArchived;
-                          return rest;
-                        } else {
-                          // Archive: add user to archived object
-                          return { ...currentArchived, [variables.userId]: new Date().toISOString() };
-                        }
-                      })(),
+                      archived: {
+                        ...opp.archived,
+                        [variables.userId]: new Date().toISOString()
+                      },
                       seenBy: {
                         ...opp.seenBy,
                         [variables.userId]: new Date().toISOString()
                       }
+                      // REMOVED: relevant field updates
+                      // REMOVED: userSaves modifications (archive is independent)
                     }
                   : opp
               )
@@ -186,8 +186,8 @@ export function usePursueOpportunity() {
   return useMutation({
     mutationFn: async ({ opportunityId, userId, partitionDate }: { 
       opportunityId: string; 
-      userId: string; 
-      partitionDate: string; 
+      userId: string;
+      partitionDate: string;
     }) => {
       const response = await fetch(`/api/opportunities/${opportunityId}/pursue`, {
         method: 'PUT',
@@ -198,7 +198,7 @@ export function usePursueOpportunity() {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to toggle pursue status');
+        throw new Error('Failed to pursue opportunity');
       }
 
       return response.json();
@@ -218,18 +218,10 @@ export function usePursueOpportunity() {
                 opp.id === variables.opportunityId
                   ? {
                       ...opp,
-                      // 🆕 NEW: Toggle pursued status
-                      pursued: (() => {
-                        const currentPursued = opp.pursued || {};
-                        if (currentPursued[variables.userId]) {
-                          // Remove user from pursued (unpursue)
-                          const { [variables.userId]: removed, ...rest } = currentPursued;
-                          return rest;
-                        } else {
-                          // Add user to pursued (pursue)
-                          return { ...currentPursued, [variables.userId]: new Date().toISOString() };
-                        }
-                      })(),
+                      pursued: {
+                        ...opp.pursued,
+                        [variables.userId]: new Date().toISOString()
+                      },
                       seenBy: {
                         ...opp.seenBy,
                         [variables.userId]: new Date().toISOString()
@@ -244,6 +236,3 @@ export function usePursueOpportunity() {
     },
   });
 }
-
-// 🔄 LEGACY: Keep old hook names for backward compatibility
-export const useMarkViewed = useMarkSeen;

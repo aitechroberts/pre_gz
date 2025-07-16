@@ -4,9 +4,10 @@ import { cosmosService } from '@/lib/cosmos';
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  props: { params: Promise<{ id: string }> }
 ) {
   try {
+    const params = await props.params;
     const { userId, partitionDate } = await request.json();
     
     if (!userId) {

@@ -1,4 +1,4 @@
-// app/api/opportunities/[id]/archive/route.ts
+// app/api/opportunities/[id]/archive/route.ts - FIXED
 import { NextRequest } from 'next/server';
 import { cosmosService } from '@/lib/cosmos';
 

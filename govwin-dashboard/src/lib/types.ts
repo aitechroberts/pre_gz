@@ -1,4 +1,5 @@
 // lib/types.ts
+// lib/types.ts - FIXED VERSION
 export interface OpportunityDocument {
   id: string;
   partitionKey: string; // Date-based: "2025-01-15"
@@ -38,14 +39,14 @@ export interface OpportunityDocument {
   setAsides: string[];
   competitionTypes?: string[];
   
-  // 🆕 NEW: Improved User interaction tracking
-  userSaves: string[];                    // [userId] - who bookmarked this
-  archived: { [userId: string]: string }; // {userId: timestamp} - who archived this  
-  pursued: { [userId: string]: string };  // {userId: timestamp} - who marked as pursued
-  seenBy: { [userId: string]: string };   // {userId: timestamp} - who viewed this
+  // 🆕 FIXED: Consistent User interaction tracking (ALL objects with timestamps)
+  userSaves: { [userId: string]: string };   // {userId: timestamp} - who bookmarked this
+  archived: { [userId: string]: string };    // {userId: timestamp} - who archived this  
+  pursued: { [userId: string]: string };     // {userId: timestamp} - who marked as pursued
+  seenBy: { [userId: string]: string };      // {userId: timestamp} - who viewed this
   
-  // 🆕 NEW: Business assessment (separate from user actions)
-  relevant: boolean | null;               // Business relevance assessment
+  // 🆕 REMOVED: No longer using relevant field - use the specific fields above
+  // relevant: boolean | null;  // DELETED - this was the old system
   
   // Metadata
   searchTerm: string;

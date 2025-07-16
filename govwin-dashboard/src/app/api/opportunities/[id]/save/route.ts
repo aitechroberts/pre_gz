@@ -1,4 +1,3 @@
-// app/api/opportunities/[id]/save/route.ts
 import { NextRequest } from 'next/server';
 import { cosmosService } from '@/lib/cosmos';
 

@@ -1,4 +1,4 @@
-// app/api/opportunities/[id]/seen/route.ts
+// app/api/opportunities/[id]/seen/route.ts - FIXED
 import { NextRequest } from 'next/server';
 import { cosmosService } from '@/lib/cosmos';
 
@@ -27,7 +27,7 @@ export async function PUT(
     
     return Response.json({ 
       success: result,
-      message: result ? 'Opportunity marked as seen' : 'Failed to mark opportunity as seen'
+      message: result ? 'Opportunity marked as seen successfully' : 'Failed to update opportunity'
     });
     
   } catch (error) {

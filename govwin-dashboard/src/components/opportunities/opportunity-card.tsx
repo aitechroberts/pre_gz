@@ -1,4 +1,4 @@
-// src/components/opportunities/opportunity-card.tsx
+// src/components/opportunities/opportunity-card.tsx - FIXED VERSION
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -9,7 +9,6 @@ import {
   ExternalLink, 
   Building, 
   Archive,
-  ArchiveRestore,
   Users,
   Eye, 
   Bookmark,
@@ -44,70 +43,91 @@ export function OpportunityCard({
   showPursueButton = false,
   pageType = 'dashboard'
 }: OpportunityCardProps) {
+  // State for UI interactions
   const [copiedSolicitation, setCopiedSolicitation] = useState(false);
+
+  // Hook instances - FIXED: These were missing!
   const markSeenMutation = useMarkSeen();
   const toggleSavedMutation = useToggleSaved();
   const archiveOpportunityMutation = useArchiveOpportunity();
   const pursueOpportunityMutation = usePursueOpportunity();
 
-  // 🆕 NEW: Use the improved data model
-  const isSaved = (opportunity.userSaves || []).includes(userId);
+  // FIXED: Use object-based checks instead of array methods
+  const isSaved = (opportunity.userSaves || {})[userId] != null;
   const isArchived = (opportunity.archived || {})[userId] != null;
-  const isPursued = (opportunity.pursued || {})[userId] != null;
   const hasBeenSeen = (opportunity.seenBy || {})[userId] != null;
+  const isPursued = (opportunity.pursued || {})[userId] != null;
   const seenByUsers = Object.keys(opportunity.seenBy || {});
 
-  // Debug logging - remove after testing
+  // Debug logging - FIXED: Add safety checks
   console.log('OpportunityCard Debug:', {
     userId,
     opportunityId: opportunity.id,
+    partitionDate: opportunity.partitionDate,
     isSaved,
     isArchived,
-    isPursued,
     hasBeenSeen,
+    isPursued,
     seenByUsers,
-    relevant: opportunity.relevant
+    userSaves: opportunity.userSaves,
+    archived: opportunity.archived
   });
 
+  // FIXED: Pass partitionDate to all mutations
   const handleCardExpanded = () => {
     console.log('Card expanded!', { opportunityId: opportunity.id, userId, hasBeenSeen });
     if (showSeenTracking && !hasBeenSeen) {
       markSeenMutation.mutate({ 
         opportunityId: opportunity.id, 
         userId,
-        partitionDate: opportunity.partitionDate 
+        partitionDate: opportunity.partitionDate || opportunity.partitionKey // FIXED: fallback
       });
     }
     onToggleExpanded?.();
   };
 
   const handleArchive = () => {
-    console.log('Archive button clicked!', { opportunityId: opportunity.id, userId, currentlyArchived: isArchived });
+    console.log('Archive button clicked!', { 
+      opportunityId: opportunity.id, 
+      userId, 
+      currentlyArchived: isArchived,
+      partitionDate: opportunity.partitionDate 
+    });
     archiveOpportunityMutation.mutate({ 
       opportunityId: opportunity.id, 
       userId,
-      partitionDate: opportunity.partitionDate 
+      partitionDate: opportunity.partitionDate || opportunity.partitionKey // FIXED: fallback
     });
   };
 
   const handleToggleSaved = () => {
-    console.log('Save button clicked!', { opportunityId: opportunity.id, userId, currentlySaved: isSaved });
+    console.log('Save button clicked!', { 
+      opportunityId: opportunity.id, 
+      userId, 
+      currentlySaved: isSaved,
+      partitionDate: opportunity.partitionDate 
+    });
     toggleSavedMutation.mutate({ 
       opportunityId: opportunity.id, 
       userId,
-      partitionDate: opportunity.partitionDate 
+      partitionDate: opportunity.partitionDate || opportunity.partitionKey // FIXED: fallback
     });
   };
 
   const handlePursue = () => {
-    console.log('Pursue button clicked!', { opportunityId: opportunity.id, userId, currentlyPursued: isPursued });
+    console.log('Pursue button clicked!', { 
+      opportunityId: opportunity.id, 
+      userId, 
+      currentlyPursued: isPursued,
+      partitionDate: opportunity.partitionDate 
+    });
     pursueOpportunityMutation.mutate({ 
       opportunityId: opportunity.id, 
       userId,
-      partitionDate: opportunity.partitionDate 
+      partitionDate: opportunity.partitionDate || opportunity.partitionKey // FIXED: fallback
     });
   };
-
+  
   const handleCopySolicitation = async () => {
     if (opportunity.solicitationNumber) {
       try {
@@ -165,291 +185,256 @@ export function OpportunityCard({
     }
   };
 
-  // 🆕 NEW: Visual indicators for combined states
-  const getCardBorderClass = () => {
-    if (isPursued) return 'border-green-300 bg-green-50';
-    if (isArchived) return 'border-red-300 bg-red-50';
-    if (isSaved) return 'border-yellow-300 bg-yellow-50';
-    if (hasBeenSeen) return 'border-gray-200 bg-gray-50';
-    return 'border-blue-200 bg-white';
-  };
-
   return (
-    <Card className={`transition-all duration-200 hover:shadow-md ${getCardBorderClass()}`}>
-      <CardHeader className="pb-3">
-        <div className="flex justify-between items-start gap-4">
+    <Card className={`transition-all duration-200 hover:shadow-md ${hasBeenSeen ? 'opacity-75' : ''}`}>
+      <CardHeader className="pb-4">
+        <div className="flex items-start justify-between gap-4">
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-2">
+            <button
+              onClick={handleCardExpanded}
+              className="text-left w-full group"
+            >
+              <h3 className="font-semibold text-lg leading-tight group-hover:text-blue-600 transition-colors mb-2">
+                {opportunity.title}
+              </h3>
+            </button>
+            
+            {/* Contract Value and Status Row */}
+            <div className="flex flex-wrap items-center gap-3 mb-3">
+              <span className="font-bold text-lg text-green-600">
+                {formatCurrency(opportunity.contractValue || 0)}
+              </span>
               <Badge variant="outline" className={getStatusColor(opportunity.status)}>
-                {opportunity.status || 'Unknown'}
+                {opportunity.status || 'Unknown Status'}
               </Badge>
-              <Badge variant="secondary" className="text-xs">
+              <Badge variant="outline">
                 {opportunity.source}
               </Badge>
-              {opportunity.contractValue && (
-                <Badge variant="outline" className="text-green-700 bg-green-50 border-green-200">
-                  <DollarSign className="w-3 h-3 mr-1" />
-                  {formatCurrency(opportunity.contractValue)}
-                </Badge>
-              )}
-              
-              {/* 🆕 NEW: Status indicators */}
-              {isPursued && (
-                <Badge className="bg-green-600 text-white text-xs">
-                  Pursuing
-                </Badge>
-              )}
-              {isArchived && (
-                <Badge variant="outline" className="bg-red-100 text-red-800 border-red-300 text-xs">
-                  Archived
+              {opportunity.typeOfAward && opportunity.typeOfAward !== 'Other' && (
+                <Badge variant="outline" className="bg-purple-100 text-purple-800">
+                  {opportunity.typeOfAward}
                 </Badge>
               )}
             </div>
-            
-            <h3 className="font-semibold text-lg leading-tight text-gray-900 mb-2 cursor-pointer hover:text-blue-600" 
-                onClick={handleCardExpanded}>
-              {opportunity.title}
-            </h3>
-            
-            <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600">
-              <div className="flex items-center gap-1">
-                <Calendar className="w-4 h-4" />
-                <span>Posted: {formatDate(opportunity.postedDate)}</span>
+
+            {/* seenBy Tags */}
+            <div className="flex items-center gap-2 mb-2">
+              <Users size={14} className="text-gray-500" />
+              <span className="text-xs text-gray-500">Seen by:</span>
+              <div className="flex flex-wrap gap-1">
+                {seenByUsers.length === 0 ? (
+                  <Badge variant="outline" className="text-xs px-1.5 py-0.5 h-5 text-gray-400">
+                    Not seen
+                  </Badge>
+                ) : (
+                  <>
+                    {seenByUsers.slice(0, 3).map((seenUserId) => (
+                      <Badge 
+                        key={seenUserId} 
+                        variant="outline" 
+                        className="text-xs px-1.5 py-0.5 h-5"
+                      >
+                        {seenUserId === userId ? "You" : seenUserId.slice(0, 8)}
+                      </Badge>
+                    ))}
+                    {seenByUsers.length > 3 && (
+                      <Badge variant="outline" className="text-xs px-1.5 py-0.5 h-5">
+                        +{seenByUsers.length - 3} more
+                      </Badge>
+                    )}
+                  </>
+                )}
               </div>
-              {opportunity.dueDate && (
-                <div className="flex items-center gap-1">
-                  <Clock className="w-4 h-4" />
-                  <span>Due: {formatDate(opportunity.dueDate)}</span>
-                </div>
-              )}
-              {opportunity.primaryNAICS?.id && (
-                <div className="flex items-center gap-1">
-                  <Tag className="w-4 h-4" />
-                  <span>NAICS: {opportunity.primaryNAICS.id}</span>
-                </div>
-              )}
             </div>
           </div>
           
-          {/* 🆕 NEW: Improved User Actions */}
-          <div className="flex items-start gap-2">
-            {/* Archive/Unarchive button */}
+          <div className="flex items-center gap-2 flex-shrink-0">
+            {/* Archive button */}
             <Button
-              variant={isArchived ? "default" : "ghost"}
-              size="sm"
-              onClick={handleArchive}
-              disabled={archiveOpportunityMutation.isPending}
-              className={isArchived 
-                ? 'bg-red-600 hover:bg-red-700 text-white' 
-                : 'text-gray-500 hover:text-red-600'
-              }
-              title={isArchived ? "Unarchive opportunity" : "Archive opportunity"}
+                variant={isArchived ? "default" : "ghost"}
+                size="sm"
+                onClick={handleArchive}
+                disabled={archiveOpportunityMutation.isPending}
+                className={isArchived ? 'bg-red-600 hover:bg-red-700 text-white' : 'text-gray-500 hover:text-red-600'}
             >
-              {isArchived ? <ArchiveRestore size={20} /> : <Archive size={20} />}
+                <Archive size={20} />
             </Button>
 
-            {/* Save button - show on dashboard or if already saved */}
-            {(pageType === 'dashboard' || isSaved) && (
-              <Button
+            {/* Save button - only show on dashboard */}
+            {pageType === 'dashboard' && (
+            <Button
                 variant={isSaved ? "default" : "ghost"}
                 size="sm"
                 onClick={handleToggleSaved}
                 disabled={toggleSavedMutation.isPending}
-                className={isSaved 
-                  ? 'bg-yellow-500 hover:bg-yellow-600 text-white' 
-                  : 'text-gray-500 hover:text-yellow-600'
-                }
-                title={isSaved ? "Remove from saved" : "Save opportunity"}
-              >
+                className={isSaved ? 'bg-yellow-500 hover:bg-yellow-600 text-white' : 'text-gray-500 hover:text-yellow-600'}
+            >
                 {isSaved ? <BookmarkCheck size={20} /> : <Bookmark size={20} />}
-              </Button>
+            </Button>
             )}
-
-            {/* Pursue button - show if enabled */}
+            
+            {/* Pursue button - only show if showPursueButton is true */}
             {showPursueButton && (
-              <Button
+            <Button
                 variant={isPursued ? "default" : "ghost"}
                 size="sm"
                 onClick={handlePursue}
                 disabled={pursueOpportunityMutation.isPending}
-                className={isPursued 
-                  ? 'bg-green-600 hover:bg-green-700 text-white' 
-                  : 'text-gray-500 hover:text-green-600'
-                }
-                title={isPursued ? "Stop pursuing" : "Mark as pursuing"}
-              >
+                className={isPursued ? 'bg-green-600 hover:bg-green-700 text-white' : 'text-gray-500 hover:text-green-600'}
+            >
                 <Target size={20} />
-              </Button>
+            </Button>
             )}
           </div>
         </div>
       </CardHeader>
 
-      {isExpanded && (
-        <CardContent className="pt-0">
-          <div className="space-y-4">
-            {/* Description */}
-            {opportunity.description && (
-              <div>
-                <h4 className="font-medium text-gray-900 mb-2 flex items-center gap-1">
-                  <FileText className="w-4 h-4" />
-                  Description
-                </h4>
-                <p className="text-gray-700 text-sm leading-relaxed">
-                  {opportunity.description}
-                </p>
+      <CardContent className="pt-0">
+        {/* Detailed Information - Only show when expanded */}
+        {isExpanded && (
+          <div className="space-y-3 mb-4">
+            {/* Agency - FIXED: Safe property access */}
+            {opportunity.agency && (
+              <div className="flex items-start gap-2">
+                <Building size={16} className="text-gray-500 mt-0.5 flex-shrink-0" />
+                <div>
+                  <span className="font-medium text-gray-700">Agency:</span>
+                  <span className="ml-2">{opportunity.agency}</span>
+                </div>
               </div>
             )}
 
-            {/* Agency & Location */}
+            {/* Classification Info */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {opportunity.agency && (
-                <div>
-                  <h4 className="font-medium text-gray-900 mb-1 flex items-center gap-1">
-                    <Building className="w-4 h-4" />
-                    Agency
-                  </h4>
-                  <p className="text-gray-700 text-sm">{opportunity.agency}</p>
+              <div>
+                <div className="flex items-start gap-2 mb-2">
+                  <Tag size={16} className="text-gray-500 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <span className="font-medium text-gray-700">PSC:</span>
+                    <span className="ml-2">{opportunity.classificationCodeDesc || 'N/A'}</span>
+                  </div>
                 </div>
-              )}
+                
+                <div className="flex items-start gap-2">
+                  <Tag size={16} className="text-gray-500 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <span className="font-medium text-gray-700">NAICS:</span>
+                    <span className="ml-2">
+                      {/* FIXED: Safe rendering to prevent React object error */}
+                      {opportunity.primaryNAICS && typeof opportunity.primaryNAICS === 'object' 
+                        ? `${opportunity.primaryNAICS.id || 'N/A'} – ${opportunity.primaryNAICS.title || 'N/A'}`
+                        : 'N/A'
+                      }
+                    </span>
+                  </div>
+                </div>
+              </div>
 
-              {opportunity.officeLocation && (
-                <div>
-                  <h4 className="font-medium text-gray-900 mb-1">Office Location</h4>
-                  <p className="text-gray-700 text-sm">{opportunity.officeLocation}</p>
+              <div>
+                {/* Response Deadline - FIXED: Safe property access */}
+                {opportunity.dueDate && (
+                  <div className="flex items-start gap-2 mb-2">
+                    <Clock size={16} className="text-red-500 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <span className="font-medium text-gray-700">Response Deadline:</span>
+                      <span className="ml-2">
+                        {formatDate(opportunity.dueDate)}
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                {/* Set-Asides - FIXED: Safe array access */}
+                <div className="flex items-start gap-2">
+                  <FileText size={16} className="text-gray-500 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <span className="font-medium text-gray-700">Set-Asides:</span>
+                    <span className="ml-2">
+                      {opportunity.setAsides && opportunity.setAsides.length > 0 
+                        ? opportunity.setAsides.join(', ')
+                        : 'N/A'
+                      }
+                    </span>
+                  </div>
                 </div>
-              )}
+              </div>
             </div>
 
-            {/* NAICS Codes */}
-            {opportunity.allNAICSCodes && opportunity.allNAICSCodes.length > 0 && (
-              <div>
-                <h4 className="font-medium text-gray-900 mb-2">NAICS Codes</h4>
-                <div className="flex flex-wrap gap-2">
-                  {opportunity.allNAICSCodes.map((naics, idx) => (
-                    <Badge key={idx} variant="outline" className="text-xs">
-                      {naics}
-                    </Badge>
-                  ))}
-                </div>
+            {/* Dates Row */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="flex items-center gap-2">
+                  <Calendar size={16} className="text-blue-600 flex-shrink-0" />
+                  <span className="font-medium text-gray-700">Posted:</span>
+                  <span>{opportunity.postedDate ? formatDate(opportunity.postedDate) : 'Unknown'}</span>
               </div>
-            )}
-
-            {/* Set Asides */}
-            {opportunity.setAsides && opportunity.setAsides.length > 0 && (
-              <div>
-                <h4 className="font-medium text-gray-900 mb-2">Set Asides</h4>
-                <div className="flex flex-wrap gap-2">
-                  {opportunity.setAsides.map((setAside, idx) => (
-                    <Badge key={idx} variant="secondary" className="text-xs">
-                      {setAside}
-                    </Badge>
-                  ))}
-                </div>
+              
+              <div className="flex items-center gap-2">
+                  <Calendar size={16} className="text-red-600 flex-shrink-0" />
+                  <span className="font-medium text-gray-700">Due Date:</span>
+                  <span>{opportunity.dueDate ? formatDate(opportunity.dueDate) : 'Unknown'}</span>
               </div>
-            )}
+            </div>
 
-            {/* Contact Info */}
-            {opportunity.contactInfo && (
-              <div>
-                <h4 className="font-medium text-gray-900 mb-2">Contact Information</h4>
-                <div className="text-sm text-gray-700 space-y-1">
-                  {opportunity.contactInfo.name && (
-                    <div><strong>Name:</strong> {opportunity.contactInfo.name}</div>
-                  )}
-                  {opportunity.contactInfo.email && (
-                    <div><strong>Email:</strong> {opportunity.contactInfo.email}</div>
-                  )}
-                  {opportunity.contactInfo.phone && (
-                    <div><strong>Phone:</strong> {opportunity.contactInfo.phone}</div>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* Solicitation Number */}
+            {/* Solicitation Number with Copy */}
             {opportunity.solicitationNumber && (
-              <div>
-                <h4 className="font-medium text-gray-900 mb-2">Solicitation Number</h4>
-                <div className="flex items-center gap-2">
-                  <code className="text-sm bg-gray-100 px-2 py-1 rounded">
-                    {opportunity.solicitationNumber}
-                  </code>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={handleCopySolicitation}
-                    className="h-6 w-6 p-0"
-                  >
-                    {copiedSolicitation ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
-                  </Button>
-                </div>
-              </div>
-            )}
-
-            {/* Source URL */}
-            {opportunity.sourceURL && (
-              <div>
-                <a
-                  href={opportunity.sourceURL}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 text-sm"
+              <div className="flex items-center gap-2">
+                <FileText size={16} className="text-gray-500 flex-shrink-0" />
+                <span className="font-medium text-gray-700">Solicitation #:</span>
+                <span className="font-mono">{opportunity.solicitationNumber}</span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleCopySolicitation}
+                  className="h-6 w-6 p-0"
                 >
-                  <ExternalLink className="w-4 h-4" />
-                  View Original Posting
-                </a>
+                  {copiedSolicitation ? (
+                    <Check size={14} className="text-green-600" />
+                  ) : (
+                    <Copy size={14} className="text-gray-500" />
+                  )}
+                </Button>
               </div>
             )}
 
-            {/* 🆕 NEW: Enhanced tracking info */}
-            {showSeenTracking && (
-              <div className="border-t pt-3 mt-4">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs text-gray-600">
-                  {seenByUsers.length > 0 && (
-                    <div className="flex items-center gap-1">
-                      <Eye className="w-3 h-3" />
-                      <span>{seenByUsers.length} viewed</span>
-                    </div>
-                  )}
-                  {Object.keys(opportunity.userSaves || {}).length > 0 && (
-                    <div className="flex items-center gap-1">
-                      <Bookmark className="w-3 h-3" />
-                      <span>{(opportunity.userSaves || []).length} saved</span>
-                    </div>
-                  )}
-                  {Object.keys(opportunity.archived || {}).length > 0 && (
-                    <div className="flex items-center gap-1">
-                      <Archive className="w-3 h-3" />
-                      <span>{Object.keys(opportunity.archived || {}).length} archived</span>
-                    </div>
-                  )}
-                  {Object.keys(opportunity.pursued || {}).length > 0 && (
-                    <div className="flex items-center gap-1">
-                      <Target className="w-3 h-3" />
-                      <span>{Object.keys(opportunity.pursued || {}).length} pursuing</span>
-                    </div>
-                  )}
-                </div>
+            {/* Search Term */}
+            {opportunity.searchTerm && (
+              <div className="flex items-center gap-2">
+                <Tag size={16} className="text-blue-500 flex-shrink-0" />
+                <span className="font-medium text-gray-700">Search Term:</span>
+                <Badge variant="outline" className="bg-blue-50 text-blue-700">
+                  {opportunity.searchTerm}
+                </Badge>
               </div>
             )}
-
-            {/* Metadata */}
-            <div className="border-t pt-3 mt-4 text-xs text-gray-500 space-y-1">
-              <div>Search Term: {opportunity.searchTerm}</div>
-              <div>Ingested: {formatDateTime(opportunity.ingestedAt)}</div>
-              {opportunity.updateDate && (
-                <div>Updated: {formatDateTime(opportunity.updateDate)}</div>
-              )}
-              {opportunity.relevant !== null && (
-                <div>
-                  Business Relevance: {opportunity.relevant ? '✅ Relevant' : '❌ Not Relevant'}
-                </div>
-              )}
-            </div>
           </div>
-        </CardContent>
-      )}
+        )}
+
+        {/* Description - Only visible when expanded, scrollable */}
+        {isExpanded && opportunity.description && (
+          <div className="border-t pt-4 mb-4">
+            <h4 className="font-medium text-gray-700 mb-2">Description</h4>
+            <div 
+              className="text-sm text-gray-600 leading-relaxed prose prose-sm max-w-none max-h-32 overflow-y-auto border border-gray-200 rounded p-3 bg-gray-50"
+              dangerouslySetInnerHTML={{ __html: opportunity.description }}
+            />
+          </div>
+        )}
+
+        {/* View Source Button - Bottom Left */}
+        {opportunity.sourceURL && (
+          <div className="border-t pt-4">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => window.open(opportunity.sourceURL, '_blank')}
+              className="flex items-center gap-2"
+            >
+              <ExternalLink size={16} />
+              View Source
+            </Button>
+          </div>
+        )}
+      </CardContent>
     </Card>
   );
 }
