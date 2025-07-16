@@ -93,17 +93,21 @@ export function useToggleSaved() {
               ...page.data,
               opportunities: page.data.opportunities.map((opp: OpportunityDocument) => {
                 if (opp.id === variables.opportunityId) {
-                  const wasSaved = (opp.userSaves || []).includes(variables.userId);
-                  
+                  const wasSaved = (opp.userSaves || {})[variables.userId] != null;
+
                   if (wasSaved) {
-                    return {
-                      ...opp,
-                      userSaves: opp.userSaves.filter((id: string) => id !== variables.userId),
+                    const { [variables.userId]: removed, ...rest } = opp.userSaves || {};
+                    return { 
+                      ...opp, 
+                      userSaves: rest 
                     };
                   } else {
                     return {
                       ...opp,
-                      userSaves: [...(opp.userSaves || []), variables.userId],
+                      userSaves: {
+                        ...opp.userSaves,
+                        [variables.userId]: new Date().toISOString(),
+                      },
                       seenBy: {
                         ...opp.seenBy,
                         [variables.userId]: new Date().toISOString(),
