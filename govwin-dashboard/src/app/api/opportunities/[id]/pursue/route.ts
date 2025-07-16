@@ -1,34 +1,37 @@
-// app/api/opportunities/[id]/pursue/route.ts
+// ===== src/app/api/opportunities/[id]/pursue/route.ts =====
 import { NextRequest } from 'next/server';
 import { cosmosService } from '@/lib/cosmos';
+import { pubSubClient } from '@/lib/pubsub-server';
 
 export async function PUT(
   request: NextRequest,
-  props: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
   try {
-    const params = await props.params;
     const { userId, partitionDate } = await request.json();
     
-    if (!userId) {
+    if (!userId || !partitionDate) {
       return Response.json(
-        { error: 'userId is required' }, 
+        { error: 'userId and partitionDate are required' }, 
         { status: 400 }
       );
     }
 
-    if (!partitionDate) {
-      return Response.json(
-        { error: 'partitionDate is required' }, 
-        { status: 400 }
-      );
-    }
-
-    const result = await cosmosService.toggleOpportunityPursued(params.id, userId, partitionDate);
+    const newPursuedState = await cosmosService.toggleOpportunityPursued(params.id, userId, partitionDate);
+    
+    // Broadcast the update to all connected clients
+    await pubSubClient.sendToAll({
+      type: "OPPORTUNITY_UPDATE",
+      opportunityId: params.id,
+      action: newPursuedState ? "pursued" : "unpursued",
+      userId,
+      timestamp: new Date().toISOString(),
+    });
     
     return Response.json({ 
-      success: result,
-      message: result ? 'Opportunity pursued/unpursued successfully' : 'Failed to update opportunity'
+      success: true,
+      pursued: newPursuedState,
+      message: newPursuedState ? 'Opportunity pursued' : 'Opportunity unpursued'
     });
     
   } catch (error) {

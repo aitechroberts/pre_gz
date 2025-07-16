@@ -1,5 +1,7 @@
+// ===== src/app/api/opportunities/[id]/save/route.ts =====
 import { NextRequest } from 'next/server';
 import { cosmosService } from '@/lib/cosmos';
+import { pubSubClient } from '@/lib/pubsub-server';
 
 export async function PUT(
   request: NextRequest,
@@ -8,25 +10,28 @@ export async function PUT(
   try {
     const { userId, partitionDate } = await request.json();
     
-    if (!userId) {
+    if (!userId || !partitionDate) {
       return Response.json(
-        { error: 'userId is required' }, 
+        { error: 'userId and partitionDate are required' }, 
         { status: 400 }
       );
     }
 
-    if (!partitionDate) {
-      return Response.json(
-        { error: 'partitionDate is required' }, 
-        { status: 400 }
-      );
-    }
-
-    const result = await cosmosService.toggleOpportunitySaved(params.id, userId, partitionDate);
+    const newSavedState = await cosmosService.toggleOpportunitySaved(params.id, userId, partitionDate);
+    
+    // Broadcast the update to all connected clients
+    await pubSubClient.sendToAll({
+      type: "OPPORTUNITY_UPDATE",
+      opportunityId: params.id,
+      action: newSavedState ? "saved" : "unsaved",
+      userId,
+      timestamp: new Date().toISOString(),
+    });
     
     return Response.json({ 
-      success: result,
-      message: result ? 'Opportunity saved/unsaved successfully' : 'Failed to update opportunity'
+      success: true,
+      saved: newSavedState,
+      message: newSavedState ? 'Opportunity saved' : 'Opportunity unsaved'
     });
     
   } catch (error) {

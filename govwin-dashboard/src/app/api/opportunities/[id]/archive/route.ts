@@ -1,6 +1,7 @@
-// app/api/opportunities/[id]/archive/route.ts - FIXED
+// ===== src/app/api/opportunities/[id]/archive/route.ts =====
 import { NextRequest } from 'next/server';
 import { cosmosService } from '@/lib/cosmos';
+import { pubSubClient } from '@/lib/pubsub-server';
 
 export async function PUT(
   request: NextRequest,
@@ -9,25 +10,28 @@ export async function PUT(
   try {
     const { userId, partitionDate } = await request.json();
     
-    if (!userId) {
+    if (!userId || !partitionDate) {
       return Response.json(
-        { error: 'userId is required' }, 
+        { error: 'userId and partitionDate are required' }, 
         { status: 400 }
       );
     }
 
-    if (!partitionDate) {
-      return Response.json(
-        { error: 'partitionDate is required' }, 
-        { status: 400 }
-      );
-    }
-
-    const result = await cosmosService.toggleOpportunityArchived(params.id, userId, partitionDate);
+    const newArchivedState = await cosmosService.toggleOpportunityArchived(params.id, userId, partitionDate);
+    
+    // Broadcast the update to all connected clients
+    await pubSubClient.sendToAll({
+      type: "OPPORTUNITY_UPDATE",
+      opportunityId: params.id,
+      action: newArchivedState ? "archived" : "unarchived",
+      userId,
+      timestamp: new Date().toISOString(),
+    });
     
     return Response.json({ 
-      success: result,
-      message: result ? 'Opportunity archived/unarchived successfully' : 'Failed to update opportunity'
+      success: true,
+      archived: newArchivedState,
+      message: newArchivedState ? 'Opportunity archived' : 'Opportunity unarchived'
     });
     
   } catch (error) {

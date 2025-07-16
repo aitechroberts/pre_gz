@@ -1,6 +1,7 @@
-// app/api/opportunities/[id]/seen/route.ts - FIXED
+// ===== src/app/api/opportunities/[id]/seen/route.ts =====
 import { NextRequest } from 'next/server';
 import { cosmosService } from '@/lib/cosmos';
+import { pubSubClient } from '@/lib/pubsub-server';
 
 export async function PUT(
   request: NextRequest,
@@ -9,25 +10,29 @@ export async function PUT(
   try {
     const { userId, partitionDate } = await request.json();
     
-    if (!userId) {
+    if (!userId || !partitionDate) {
       return Response.json(
-        { error: 'userId is required' }, 
-        { status: 400 }
-      );
-    }
-
-    if (!partitionDate) {
-      return Response.json(
-        { error: 'partitionDate is required' }, 
+        { error: 'userId and partitionDate are required' }, 
         { status: 400 }
       );
     }
 
     const result = await cosmosService.markOpportunitySeen(params.id, userId, partitionDate);
     
+    if (result) {
+      // Broadcast the update to all connected clients
+      await pubSubClient.sendToAll({
+        type: "OPPORTUNITY_UPDATE",
+        opportunityId: params.id,
+        action: "seen",
+        userId,
+        timestamp: new Date().toISOString(),
+      });
+    }
+    
     return Response.json({ 
       success: result,
-      message: result ? 'Opportunity marked as seen successfully' : 'Failed to update opportunity'
+      message: result ? 'Opportunity marked as seen' : 'Failed to mark opportunity as seen'
     });
     
   } catch (error) {
