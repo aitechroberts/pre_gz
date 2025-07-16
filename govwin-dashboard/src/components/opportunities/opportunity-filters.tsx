@@ -17,7 +17,7 @@ interface OpportunityFiltersProps {
   onApplyFilters?: () => void;
   onResetFilters?: () => void;
   className?: string;
-  hiddenFilters?: string[]; // NEW: List of filters to hide
+  hiddenFilters?: string[];
 }
 
 export function OpportunityFiltersComponent({ 
@@ -26,7 +26,7 @@ export function OpportunityFiltersComponent({
   onApplyFilters,
   onResetFilters,
   className,
-  hiddenFilters = [] // NEW: Default to empty array
+  hiddenFilters = []
 }: OpportunityFiltersProps) {
   const { data: filterOptions, isLoading } = useFilterOptions();
 
@@ -34,10 +34,7 @@ export function OpportunityFiltersComponent({
     onFiltersChange({ ...filters, ...updates });
   };
 
-  // Helper function to check if a filter should be hidden
-  const isFilterHidden = (filterName: string) => {
-    return hiddenFilters.includes(filterName);
-  };
+  const isFilterHidden = (filterName: string) => hiddenFilters.includes(filterName);
 
   if (isLoading) {
     return <div className="animate-pulse bg-gray-100 rounded-lg h-32" />;
@@ -48,7 +45,6 @@ export function OpportunityFiltersComponent({
       <CardHeader className="pb-4">
         <CardTitle className="text-lg">Filters</CardTitle>
       </CardHeader>
-      
       <CardContent className="pt-0">
         {/* Scrollable Filter Content */}
         <div className="max-h-[60vh] overflow-y-auto pr-2 space-y-6">
@@ -78,7 +74,6 @@ export function OpportunityFiltersComponent({
                 </PopoverContent>
               </Popover>
             </div>
-            
             <div>
               <Label className="text-sm font-medium mb-2 block">To Date</Label>
               <Popover>
@@ -107,7 +102,7 @@ export function OpportunityFiltersComponent({
           {/* Search Terms */}
           <div>
             <Label className="text-sm font-medium mb-2 block">
-              Search Terms ({filters.searchTerms?.length || 0} selected)
+              Search Terms ({filters.searchTerms.length} selected)
             </Label>
             <MultiSelect
               options={filterOptions?.searchTerms || []}
@@ -169,14 +164,14 @@ export function OpportunityFiltersComponent({
             />
           </div>
 
-          {/* User-specific filters - only show if not hidden */}
+          {/* User-specific filters */}
           {(!isFilterHidden('seenFilter') || !isFilterHidden('relevantFilter')) && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t">
               {/* Seen Filter */}
               {!isFilterHidden('seenFilter') && (
                 <div>
                   <Label className="text-sm font-medium mb-2 block">
-                    Seen Status ({(filters.seenFilter || []).length} selected)
+                    Seen Status ({filters.seenFilter.length} selected)
                   </Label>
                   <MultiSelect
                     options={['seen', 'unseen']}
@@ -186,15 +181,14 @@ export function OpportunityFiltersComponent({
                   />
                 </div>
               )}
-              
-              {/* Relevant Filter */}
+              {/* Relevant (Review Status) Filter */}
               {!isFilterHidden('relevantFilter') && (
                 <div>
                   <Label className="text-sm font-medium mb-2 block">
-                    Review Status ({(filters.relevantFilter || []).length} selected)
+                    Review Status ({filters.relevantFilter.length} selected)
                   </Label>
                   <MultiSelect
-                    options={['saved', 'archived', 'unreviewed']}
+                    options={['saved', 'archived', 'pursued', 'unreviewed']}
                     selected={filters.relevantFilter || []}
                     onChange={(values) => updateFilters({ relevantFilter: values })}
                     placeholder="All opportunities"
@@ -205,7 +199,7 @@ export function OpportunityFiltersComponent({
           )}
         </div>
 
-        {/* Apply and Reset Buttons - only show if handlers provided */}
+        {/* Apply and Reset Buttons */}
         {(onApplyFilters || onResetFilters) && (
           <div className="flex gap-3 mt-6 pt-4 border-t">
             {onApplyFilters && (

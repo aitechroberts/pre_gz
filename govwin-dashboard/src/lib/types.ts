@@ -1,16 +1,13 @@
-// lib/types.ts
-// lib/types.ts - FIXED VERSION
+// src/lib/types.ts
 export interface OpportunityDocument {
   id: string;
-  partitionKey: string; // Date-based: "2025-01-15"
-  partitionDate: string; // Date-based partition key: "2025-01-15"
-  
-  // Core opportunity fields
+  partitionKey: string; // e.g. "2025-01-15"
+  partitionDate: string; // date-based partition key
+  // Core fields
   title: string;
   status: string;
   contractValue: number;
   oppValue?: string;
-  
   // Classification
   primaryNAICS: {
     id: string;
@@ -19,39 +16,31 @@ export interface OpportunityDocument {
   };
   additionalNaics?: string[];
   allNAICSCodes: string[];
-  classificationCodeDesc?: string; // PSC code
-  
+  classificationCodeDesc?: string;
   // Dates
   postedDate: string;
   dueDate?: string;
   ingestedAt: string;
   updateDate?: string;
-  
-  // Source information
+  // Source info
   source: string;
   sourcePlatform: string;
   sourceURL?: string;
   solicitationNumber?: string;
-  
   // Procurement details
   procurement?: string;
   typeOfAward?: string;
   setAsides: string[];
   competitionTypes?: string[];
-  
-  // 🆕 FIXED: Consistent User interaction tracking (ALL objects with timestamps)
-  userSaves: { [userId: string]: string };   // {userId: timestamp} - who bookmarked this
-  archived: { [userId: string]: string };    // {userId: timestamp} - who archived this  
-  pursued: { [userId: string]: string };     // {userId: timestamp} - who marked as pursued
-  seenBy: { [userId: string]: string };      // {userId: timestamp} - who viewed this
-  
-  // 🆕 REMOVED: No longer using relevant field - use the specific fields above
-  // relevant: boolean | null;  // DELETED - this was the old system
-  
+  // User interaction tracking (as objects of userId->timestamp)
+  userSaves: { [userId: string]: string };
+  archived: { [userId: string]: string };
+  pursued: { [userId: string]: string };
+  seenBy: { [userId: string]: string };
+  // (Removed old `relevant` boolean field)
   // Metadata
   searchTerm: string;
-  
-  // Optional fields from GovWin API
+  // Optional fields
   description?: string;
   agency?: string;
   officeLocation?: string;
@@ -80,9 +69,9 @@ export interface OpportunityFilters {
   psc: string[];
   status: string[];
   searchTerms: string[];
-  seenFilter?: 'all' | 'seen' | 'unseen';
-  relevantFilter?: 'all' | 'saved' | 'archived' | 'pursued' | 'unreviewed';
-  archivedFilter?: 'all' | 'archived' | 'unarchived'; // New: separate archive filter
+  seenFilter: string[];      // e.g. [] (no filter), ['seen'], or ['unseen']
+  relevantFilter: string[];  // e.g. [] or any of ['saved','archived','pursued','unreviewed']
+  // archivedFilter removed (use relevantFilter with 'archived' if needed)
 }
 
 export interface PaginationParams {
@@ -118,13 +107,12 @@ export const PARKER_TIDE_PSC = [
 
 export const SOURCE_MAPPING = {
   "SAM.gov": "sam.gov",
-  "GSA eBuy/Task Orders": "gsa_ebuy", 
+  "GSA eBuy/Task Orders": "gsa_ebuy",
   "GovWin Tracked": "govwin_tracked",
   "State/Local Bids": "state_local",
   "Opportunity Manager": "opp_manager"
 } as const;
 
-// Utility types
 export type SortField = 'postedDate' | 'contractValue' | 'dueDate' | 'ingestedAt';
 export type SortDirection = 'asc' | 'desc';
 
@@ -133,7 +121,6 @@ export interface SortParams {
   direction: SortDirection;
 }
 
-// API Response types
 export interface ApiResponse<T> {
   success: boolean;
   data?: T;
