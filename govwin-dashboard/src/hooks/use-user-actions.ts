@@ -1,15 +1,17 @@
-// hooks/use-user-actions.ts - FIXED VERSION
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+// src/hooks/use-user-actions.ts
+import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { OpportunityDocument } from '@/lib/types';
+import { useWebSocket } from '@/contexts/websocket-context';
 
 export function useMarkSeen() {
   const queryClient = useQueryClient();
+  const { emitOpportunityAction } = useWebSocket();
 
   return useMutation({
     mutationFn: async ({ opportunityId, userId, partitionDate }: { 
       opportunityId: string; 
-      userId: string;
-      partitionDate: string;
+      userId: string; 
+      partitionDate: string; 
     }) => {
       const response = await fetch(`/api/opportunities/${opportunityId}/seen`, {
         method: 'PUT',
@@ -26,6 +28,9 @@ export function useMarkSeen() {
       return response.json();
     },
     onSuccess: (data, variables) => {
+      // Emit WebSocket event
+      emitOpportunityAction('seen', variables.opportunityId, variables.partitionDate);
+
       // Optimistically update the cache
       queryClient.setQueryData(['opportunities'], (oldData: any) => {
         if (!oldData) return oldData;
@@ -57,12 +62,13 @@ export function useMarkSeen() {
 
 export function useToggleSaved() {
   const queryClient = useQueryClient();
+  const { emitOpportunityAction } = useWebSocket();
 
   return useMutation({
     mutationFn: async ({ opportunityId, userId, partitionDate }: { 
       opportunityId: string; 
-      userId: string;
-      partitionDate: string;
+      userId: string; 
+      partitionDate: string; 
     }) => {
       const response = await fetch(`/api/opportunities/${opportunityId}/save`, {
         method: 'PUT',
@@ -73,17 +79,18 @@ export function useToggleSaved() {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to toggle opportunity saved state');
+        throw new Error('Failed to toggle save state');
       }
 
       return response.json();
     },
     onSuccess: (data, variables) => {
-      // Optimistically update the cache - FIXED to use object format
+      // Optimistically update the cache and emit WebSocket event
       queryClient.setQueryData(['opportunities'], (oldData: any) => {
         if (!oldData) return oldData;
 
-        return {
+        let wasSaved = false;
+        const updatedData = {
           ...oldData,
           pages: oldData.pages.map((page: any) => ({
             ...page,
@@ -91,31 +98,35 @@ export function useToggleSaved() {
               ...page.data,
               opportunities: page.data.opportunities.map((opp: OpportunityDocument) => {
                 if (opp.id === variables.opportunityId) {
-                  const userSaves = opp.userSaves || {};
-                  const isSaved = userSaves[variables.userId] != null; // FIXED: check object key
+                  wasSaved = (opp.userSaves || []).includes(variables.userId);
                   
-                  const newUserSaves = { ...userSaves };
-                  if (isSaved) {
-                    delete newUserSaves[variables.userId]; // FIXED: remove key
+                  if (wasSaved) {
+                    // Emit unsaved event
+                    emitOpportunityAction('unsaved', variables.opportunityId, variables.partitionDate);
+                    return {
+                      ...opp,
+                      userSaves: opp.userSaves.filter((id: string) => id !== variables.userId),
+                    };
                   } else {
-                    newUserSaves[variables.userId] = new Date().toISOString(); // FIXED: add timestamp
+                    // Emit saved event
+                    emitOpportunityAction('saved', variables.opportunityId, variables.partitionDate);
+                    return {
+                      ...opp,
+                      userSaves: [...(opp.userSaves || []), variables.userId],
+                      seenBy: {
+                        ...opp.seenBy,
+                        [variables.userId]: new Date().toISOString(),
+                      },
+                    };
                   }
-                  
-                  return {
-                    ...opp,
-                    userSaves: newUserSaves, // FIXED: object format
-                    seenBy: {
-                      ...opp.seenBy,
-                      [variables.userId]: new Date().toISOString()
-                    }
-                    // REMOVED: relevant field updates
-                  };
                 }
                 return opp;
-              })
-            }
-          }))
+              }),
+            },
+          })),
         };
+
+        return updatedData;
       });
     },
   });
@@ -123,12 +134,13 @@ export function useToggleSaved() {
 
 export function useArchiveOpportunity() {
   const queryClient = useQueryClient();
+  const { emitOpportunityAction } = useWebSocket();
 
   return useMutation({
     mutationFn: async ({ opportunityId, userId, partitionDate }: { 
       opportunityId: string; 
-      userId: string;
-      partitionDate: string;
+      userId: string; 
+      partitionDate: string; 
     }) => {
       const response = await fetch(`/api/opportunities/${opportunityId}/archive`, {
         method: 'PUT',
@@ -139,42 +151,58 @@ export function useArchiveOpportunity() {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to archive opportunity');
+        throw new Error('Failed to toggle archive state');
       }
 
       return response.json();
     },
     onSuccess: (data, variables) => {
-      // Optimistically update the cache - FIXED
+      // Optimistically update the cache and emit WebSocket event
       queryClient.setQueryData(['opportunities'], (oldData: any) => {
         if (!oldData) return oldData;
 
-        return {
+        let wasArchived = false;
+        const updatedData = {
           ...oldData,
           pages: oldData.pages.map((page: any) => ({
             ...page,
             data: {
               ...page.data,
-              opportunities: page.data.opportunities.map((opp: OpportunityDocument) => 
-                opp.id === variables.opportunityId
-                  ? {
+              opportunities: page.data.opportunities.map((opp: OpportunityDocument) => {
+                if (opp.id === variables.opportunityId) {
+                  wasArchived = (opp.archived || {})[variables.userId] != null;
+                  
+                  if (wasArchived) {
+                    // Emit unarchived event
+                    emitOpportunityAction('unarchived', variables.opportunityId, variables.partitionDate);
+                    const { [variables.userId]: removed, ...rest } = opp.archived || {};
+                    return {
+                      ...opp,
+                      archived: rest,
+                    };
+                  } else {
+                    // Emit archived event
+                    emitOpportunityAction('archived', variables.opportunityId, variables.partitionDate);
+                    return {
                       ...opp,
                       archived: {
                         ...opp.archived,
-                        [variables.userId]: new Date().toISOString()
+                        [variables.userId]: new Date().toISOString(),
                       },
                       seenBy: {
                         ...opp.seenBy,
-                        [variables.userId]: new Date().toISOString()
-                      }
-                      // REMOVED: relevant field updates
-                      // REMOVED: userSaves modifications (archive is independent)
-                    }
-                  : opp
-              )
-            }
-          }))
+                        [variables.userId]: new Date().toISOString(),
+                      },
+                    };
+                  }
+                }
+                return opp;
+              }),
+            },
+          })),
         };
+
+        return updatedData;
       });
     },
   });
@@ -182,12 +210,13 @@ export function useArchiveOpportunity() {
 
 export function usePursueOpportunity() {
   const queryClient = useQueryClient();
+  const { emitOpportunityAction } = useWebSocket();
 
   return useMutation({
     mutationFn: async ({ opportunityId, userId, partitionDate }: { 
       opportunityId: string; 
-      userId: string;
-      partitionDate: string;
+      userId: string; 
+      partitionDate: string; 
     }) => {
       const response = await fetch(`/api/opportunities/${opportunityId}/pursue`, {
         method: 'PUT',
@@ -198,41 +227,155 @@ export function usePursueOpportunity() {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to pursue opportunity');
+        throw new Error('Failed to toggle pursue status');
       }
 
       return response.json();
     },
     onSuccess: (data, variables) => {
-      // Optimistically update the cache
+      // Optimistically update the cache and emit WebSocket event
       queryClient.setQueryData(['opportunities'], (oldData: any) => {
         if (!oldData) return oldData;
 
-        return {
+        let wasPursued = false;
+        const updatedData = {
           ...oldData,
           pages: oldData.pages.map((page: any) => ({
             ...page,
             data: {
               ...page.data,
-              opportunities: page.data.opportunities.map((opp: OpportunityDocument) => 
-                opp.id === variables.opportunityId
-                  ? {
+              opportunities: page.data.opportunities.map((opp: OpportunityDocument) => {
+                if (opp.id === variables.opportunityId) {
+                  wasPursued = (opp.pursued || {})[variables.userId] != null;
+                  
+                  if (wasPursued) {
+                    // Emit unpursued event
+                    emitOpportunityAction('unpursued', variables.opportunityId, variables.partitionDate);
+                    const { [variables.userId]: removed, ...rest } = opp.pursued || {};
+                    return {
+                      ...opp,
+                      pursued: rest,
+                    };
+                  } else {
+                    // Emit pursued event
+                    emitOpportunityAction('pursued', variables.opportunityId, variables.partitionDate);
+                    return {
                       ...opp,
                       pursued: {
                         ...opp.pursued,
-                        [variables.userId]: new Date().toISOString()
+                        [variables.userId]: new Date().toISOString(),
                       },
                       seenBy: {
                         ...opp.seenBy,
-                        [variables.userId]: new Date().toISOString()
-                      }
-                    }
-                  : opp
-              )
-            }
-          }))
+                        [variables.userId]: new Date().toISOString(),
+                      },
+                    };
+                  }
+                }
+                return opp;
+              }),
+            },
+          })),
         };
+
+        return updatedData;
       });
     },
+  });
+}
+
+// Bulk operations hooks
+export function useBulkArchive() {
+  const queryClient = useQueryClient();
+  const { emitOpportunityAction } = useWebSocket();
+
+  return useMutation({
+    mutationFn: async ({ opportunityIds, userId, action }: { 
+      opportunityIds: Array<{ id: string; partitionDate: string }>;
+      userId: string; 
+      action: 'archive' | 'unarchive';
+    }) => {
+      const response = await fetch('/api/opportunities/bulk/archive', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ opportunityIds, userId, action }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to bulk archive/unarchive');
+      }
+
+      return response.json();
+    },
+    onSuccess: (data, variables) => {
+      // Emit WebSocket events for each opportunity
+      variables.opportunityIds.forEach(({ id, partitionDate }) => {
+        emitOpportunityAction(
+          variables.action === 'archive' ? 'archived' : 'unarchived',
+          id,
+          partitionDate
+        );
+      });
+
+      // Invalidate and refetch opportunities
+      queryClient.invalidateQueries({ queryKey: ['opportunities'] });
+    },
+  });
+}
+
+export function useBulkPursue() {
+  const queryClient = useQueryClient();
+  const { emitOpportunityAction } = useWebSocket();
+
+  return useMutation({
+    mutationFn: async ({ opportunityIds, userId, action }: { 
+      opportunityIds: Array<{ id: string; partitionDate: string }>;
+      userId: string; 
+      action: 'pursue' | 'unpursue';
+    }) => {
+      const response = await fetch('/api/opportunities/bulk/pursue', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ opportunityIds, userId, action }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to bulk pursue/unpursue');
+      }
+
+      return response.json();
+    },
+    onSuccess: (data, variables) => {
+      // Emit WebSocket events for each opportunity
+      variables.opportunityIds.forEach(({ id, partitionDate }) => {
+        emitOpportunityAction(
+          variables.action === 'pursue' ? 'pursued' : 'unpursued',
+          id,
+          partitionDate
+        );
+      });
+
+      // Invalidate and refetch opportunities
+      queryClient.invalidateQueries({ queryKey: ['opportunities'] });
+    },
+  });
+}
+
+// Query to get list of pursued opportunities for a user
+export function useGetPursuedList(userId: string) {
+  return useQuery({
+    queryKey: ['pursued-opportunities', userId],
+    queryFn: async () => {
+      const response = await fetch(`/api/opportunities/pursued?userId=${userId}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch pursued opportunities');
+      }
+      return response.json();
+    },
+    enabled: !!userId && userId !== 'anonymous',
   });
 }
