@@ -1,0 +1,13 @@
+{
+  "indexingMode": "consistent",
+  "includedPaths": [
+    { "path": "/*" }
+  ],
+  "excludedPaths": [],
+  "compositeIndexes": [
+    [
+      { "path": "/searchTerm", "order": "ascending" },
+      { "path": "/partitionDate", "order": "descending" }
+    ]
+  ]
+}

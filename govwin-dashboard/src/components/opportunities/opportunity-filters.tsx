@@ -174,7 +174,7 @@ export function OpportunityFiltersComponent({
                     Seen Status ({filters.seenFilter.length} selected)
                   </Label>
                   <MultiSelect
-                    options={['seen', 'unseen']}
+                    options={['Seen', 'Unseen']}
                     selected={filters.seenFilter || []}
                     onChange={(values) => updateFilters({ seenFilter: values })}
                     placeholder="All opportunities"
@@ -188,7 +188,7 @@ export function OpportunityFiltersComponent({
                     Review Status ({filters.relevantFilter.length} selected)
                   </Label>
                   <MultiSelect
-                    options={['saved', 'archived', 'pursued', 'unreviewed']}
+                    options={['Saved', 'Archived', 'Pursued', 'Unreviewed']}
                     selected={filters.relevantFilter || []}
                     onChange={(values) => updateFilters({ relevantFilter: values })}
                     placeholder="All opportunities"

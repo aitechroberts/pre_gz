@@ -9,9 +9,9 @@ export async function PUT(
   const { id } = await context.params;          // ⬅️ await the params
 
   try {
-    const { userId, partitionDate } = await request.json();
+    const { userId} = await request.json();
 
-    if (!userId || !partitionDate) {
+    if (!userId) {
       return NextResponse.json(
         { error: 'userId and partitionDate are required' },
         { status: 400 }
@@ -21,7 +21,6 @@ export async function PUT(
     const newPursuedState = await cosmosService.toggleOpportunityPursued(
       id,
       userId,
-      partitionDate
     );
 
     await pubSubClient.sendToAll({

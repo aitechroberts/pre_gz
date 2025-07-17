@@ -9,19 +9,18 @@ export async function PUT(
   const { id } = await context.params;          // ⬅️ await the params
 
   try {
-    const { userId, partitionDate } = await request.json();
+    const { userId } = await request.json();
 
-    if (!userId || !partitionDate) {
+    if (!userId) {
       return NextResponse.json(
-        { error: 'userId and partitionDate are required' },
+        { error: 'userId is required' },
         { status: 400 }
       );
     }
 
     const success = await cosmosService.markOpportunitySeen(
       id,
-      userId,
-      partitionDate
+      userId
     );
 
     if (success) {

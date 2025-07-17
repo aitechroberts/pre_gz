@@ -75,7 +75,6 @@ export function OpportunityCard({
     archived: opportunity.archived
   });
 
-  // FIXED: Pass partitionDate to all mutations
   const handleCardExpanded = () => {
     console.log('Card expanded!', { opportunityId: opportunity.id, userId, hasBeenSeen });
     if (showSeenTracking && !hasBeenSeen) {
@@ -83,7 +82,6 @@ export function OpportunityCard({
         {
           opportunityId: opportunity.id,
           userId,
-          partitionDate: opportunity.partitionDate || opportunity.partitionKey,
         },
         {
           onSuccess: (data) => {
@@ -105,14 +103,11 @@ export function OpportunityCard({
       opportunityId: opportunity.id, 
       userId, 
       currentlyArchived: isArchived,
-      partitionDate: opportunity.partitionDate 
     });
     console.log({ isArchived });
     const result = archiveOpportunityMutation.mutate({ 
       opportunityId: opportunity.id, 
       userId,
-      partitionDate: opportunity.partitionDate || opportunity.partitionKey,
-      isArchived: isArchived // Pass current state to toggle
     }, {
       onSuccess: (data) => {
         if (data.success) {
@@ -127,12 +122,10 @@ export function OpportunityCard({
       opportunityId: opportunity.id, 
       userId, 
       currentlySaved: isSaved,
-      partitionDate: opportunity.partitionDate 
     });
     toggleSavedMutation.mutate({ 
       opportunityId: opportunity.id, 
       userId,
-      partitionDate: opportunity.partitionDate || opportunity.partitionKey // FIXED: fallback
     }, {
       onSuccess: (data) => {
         if (data.success) {
@@ -147,12 +140,10 @@ export function OpportunityCard({
       opportunityId: opportunity.id, 
       userId, 
       currentlyPursued: isPursued,
-      partitionDate: opportunity.partitionDate 
     });
     pursueOpportunityMutation.mutate({ 
       opportunityId: opportunity.id, 
       userId,
-      partitionDate: opportunity.partitionDate || opportunity.partitionKey // FIXED: fallback
     }, {
       onSuccess: (data) => {
         if (data.success) {

@@ -27,7 +27,7 @@ class CosmosService {
 
     this.client = new CosmosClient({ endpoint, key });
     const database = this.client.database(process.env.COSMOS_DATABASE ?? "govwin");
-    this.container = database.container(process.env.COSMOS_CONTAINER ?? "opportunities_optimized");
+    this.container = database.container(process.env.COSMOS_CONTAINER ?? "opportunities");
   }
 
   /**
@@ -46,7 +46,7 @@ class CosmosService {
       const { resources, continuationToken } = await this.container.items
         .query(query, {
           maxItemCount: pagination.limit,
-          continuationToken: pagination.cursor
+          continuationToken: pagination.cursor,
         })
         .fetchAll();
 
@@ -211,9 +211,9 @@ class CosmosService {
   /**
    * Mark opportunity as viewed by a user
    */
-  async markOpportunitySeen(opportunityId: string, userId: string, partitionDate: string): Promise<boolean> {
+  async markOpportunitySeen(opportunityId: string, userId: string,): Promise<boolean> {
     try {
-      const { resource: opportunity } = await this.container.item(opportunityId, partitionDate).read();
+      const { resource: opportunity } = await this.container.item(opportunityId, opportunityId).read();
       if (!opportunity) {
         throw new Error('Opportunity not found');
       }
@@ -221,7 +221,7 @@ class CosmosService {
       // Only update if the user hasn't seen it yet
       if (!opportunity.seenBy[userId]) {
         opportunity.seenBy[userId] = new Date().toISOString();
-        await this.container.item(opportunityId, partitionDate).replace(opportunity);
+        await this.container.item(opportunityId, opportunityId).replace(opportunity);
         // (Broadcasting handled in the API route)
       }
       return true;
@@ -234,9 +234,9 @@ class CosmosService {
   /**
    * Save/unsave opportunity for a user
    */
-  async toggleOpportunitySaved(opportunityId: string, userId: string, partitionDate: string): Promise<boolean> {
+  async toggleOpportunitySaved(opportunityId: string, userId: string,): Promise<boolean> {
     try {
-      const { resource: opportunity } = await this.container.item(opportunityId, partitionDate).read();
+      const { resource: opportunity } = await this.container.item(opportunityId, opportunityId).read();
       if (!opportunity) {
         throw new Error('Opportunity not found');
       }
@@ -251,7 +251,7 @@ class CosmosService {
         opportunity.userSaves[userId] = new Date().toISOString();
         opportunity.seenBy[userId] = new Date().toISOString();
       }
-      await this.container.item(opportunityId, partitionDate).replace(opportunity);
+      await this.container.item(opportunityId, opportunityId).replace(opportunity);
       // (Broadcasting handled in the API route)
       return !isSaved;
     } catch (error) {
@@ -263,9 +263,9 @@ class CosmosService {
   /**
    * Archive/unarchive opportunity for a user
    */
-  async toggleOpportunityArchived(opportunityId: string, userId: string, partitionDate: string): Promise<boolean> {
+  async toggleOpportunityArchived(opportunityId: string, userId: string,): Promise<boolean> {
     try {
-      const { resource: opportunity } = await this.container.item(opportunityId, partitionDate).read();
+      const { resource: opportunity } = await this.container.item(opportunityId, opportunityId).read();
       if (!opportunity) {
         throw new Error('Opportunity not found');
       }
@@ -278,7 +278,7 @@ class CosmosService {
         opportunity.archived[userId] = new Date().toISOString();
         opportunity.seenBy[userId] = new Date().toISOString();
       }
-      await this.container.item(opportunityId, partitionDate).replace(opportunity);
+      await this.container.item(opportunityId, opportunityId).replace(opportunity);
       // (Broadcasting handled in the API route)
       return !isArchived;
     } catch (error) {
@@ -290,9 +290,9 @@ class CosmosService {
   /**
    * Pursue/unpursue opportunity for a user
    */
-  async toggleOpportunityPursued(opportunityId: string, userId: string, partitionDate: string): Promise<boolean> {
+  async toggleOpportunityPursued(opportunityId: string, userId: string,): Promise<boolean> {
     try {
-      const { resource: opportunity } = await this.container.item(opportunityId, partitionDate).read();
+      const { resource: opportunity } = await this.container.item(opportunityId, opportunityId).read();
       if (!opportunity) {
         throw new Error('Opportunity not found');
       }
@@ -305,7 +305,7 @@ class CosmosService {
         opportunity.pursued[userId] = new Date().toISOString();
         opportunity.seenBy[userId] = new Date().toISOString();
       }
-      await this.container.item(opportunityId, partitionDate).replace(opportunity);
+      await this.container.item(opportunityId, opportunityId).replace(opportunity);
       // (Broadcasting handled in the API route)
       return !isPursued;
     } catch (error) {

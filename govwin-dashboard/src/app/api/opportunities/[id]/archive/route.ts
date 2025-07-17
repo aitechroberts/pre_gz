@@ -9,16 +9,16 @@ export async function PUT(
 ) {
   try {
     const { id } = await context.params;
-    const { userId, partitionDate } = await request.json();
+    const { userId } = await request.json();
 
-    if (!userId || !partitionDate) {
+    if (!userId) {
       return NextResponse.json(
-        { error: 'userId and partitionDate are required' },
+        { error: 'userId is required' },
         { status: 400 }
       );
     }
 
-    const newArchivedState = await cosmosService.toggleOpportunityArchived(id, userId, partitionDate);
+    const newArchivedState = await cosmosService.toggleOpportunityArchived(id, userId);
     
     // Broadcast the update to all connected clients
     await pubSubClient.sendToAll({

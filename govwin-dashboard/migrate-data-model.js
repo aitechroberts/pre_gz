@@ -1,15 +1,19 @@
-// add-user-fields.js
-// Simple script to add user interaction fields (archived, userSaves, seenBy) to documents that don't have them
+// Robust migration script to ensure user interaction fields are always objects
+
 const { CosmosClient } = require('@azure/cosmos');
 require('dotenv').config({ path: '.env.local' });
 
 const DRY_RUN = process.argv.includes('--dry-run');
 const CONTAINER_NAME = 'opportunities_optimized';
 
-async function addUserFields() {
-  console.log('👤 Adding user interaction fields to documents...');
+function isObject(val) {
+  return val && typeof val === 'object' && !Array.isArray(val);
+}
+
+async function migrateUserFields() {
+  console.log('🔄 Migrating user interaction fields to objects...');
   console.log(`📋 Mode: ${DRY_RUN ? 'DRY RUN' : 'LIVE UPDATE'}`);
-  
+
   const client = new CosmosClient({
     endpoint: process.env.COSMOS_URL,
     key: process.env.COSMOS_KEY,
@@ -19,114 +23,78 @@ async function addUserFields() {
   const container = database.container(CONTAINER_NAME);
 
   try {
-    // Find documents missing user interaction fields
-    console.log('🔍 Finding documents missing user interaction fields...');
+    // Find documents needing migration
     const querySpec = {
       query: `SELECT * FROM c 
-              WHERE NOT IS_DEFINED(c.archived) 
-              OR NOT IS_DEFINED(c.userSaves) 
-              OR NOT IS_DEFINED(c.seenBy)
-              OR (IS_DEFINED(c.pursued) AND IS_BOOL(c.pursued))`
+              WHERE 
+                NOT IS_DEFINED(c.archived) OR 
+                NOT IS_DEFINED(c.userSaves) OR 
+                NOT IS_DEFINED(c.seenBy) OR 
+                NOT IS_DEFINED(c.pursued) OR
+                (IS_DEFINED(c.archived) AND (IS_ARRAY(c.archived) OR IS_NULL(c.archived) OR IS_BOOL(c.archived))) OR
+                (IS_DEFINED(c.userSaves) AND (IS_ARRAY(c.userSaves) OR IS_NULL(c.userSaves) OR IS_BOOL(c.userSaves))) OR
+                (IS_DEFINED(c.seenBy) AND (IS_ARRAY(c.seenBy) OR IS_NULL(c.seenBy) OR IS_BOOL(c.seenBy))) OR
+                (IS_DEFINED(c.pursued) AND (IS_ARRAY(c.pursued) OR IS_NULL(c.pursued) OR IS_BOOL(c.pursued)))`
     };
-    
-    const { resources: docsNeedingUserFields } = await container.items.query(
-      querySpec, 
+
+    const { resources: docs } = await container.items.query(
+      querySpec,
       { enableCrossPartitionQuery: true }
     ).fetchAll();
-    
-    console.log(`📊 Found ${docsNeedingUserFields.length} documents needing user fields`);
-    
-    if (docsNeedingUserFields.length === 0) {
-      console.log('✅ All documents already have user interaction fields!');
+
+    console.log(`📊 Found ${docs.length} documents needing migration`);
+
+    if (docs.length === 0) {
+      console.log('✅ All documents already have correct user interaction fields!');
       return;
     }
-
-    // Analyze what fields are missing
-    const analysis = {
-      needsArchived: 0,
-      needsUserSaves: 0,
-      needsSeenBy: 0,
-      needsPursuedConversion: 0
-    };
-    
-    docsNeedingUserFields.forEach(doc => {
-      if (!doc.hasOwnProperty('archived')) analysis.needsArchived++;
-      if (!doc.hasOwnProperty('userSaves')) analysis.needsUserSaves++;
-      if (!doc.hasOwnProperty('seenBy')) analysis.needsSeenBy++;
-      if (doc.hasOwnProperty('pursued') && typeof doc.pursued === 'boolean') analysis.needsPursuedConversion++;
-    });
-    
-    console.log('\n📋 Field analysis:');
-    console.log(`   Need archived field: ${analysis.needsArchived}`);
-    console.log(`   Need userSaves field: ${analysis.needsUserSaves}`);
-    console.log(`   Need seenBy field: ${analysis.needsSeenBy}`);
-    console.log(`   Need pursued conversion: ${analysis.needsPursuedConversion}`);
 
     if (DRY_RUN) {
       console.log('\n📄 Sample documents that would be updated:');
-      docsNeedingUserFields.slice(0, 5).forEach(doc => {
+      docs.slice(0, 5).forEach(doc => {
         const changes = [];
-        if (!doc.hasOwnProperty('archived')) changes.push('add archived: {}');
-        if (!doc.hasOwnProperty('userSaves')) changes.push('add userSaves: []');
-        if (!doc.hasOwnProperty('seenBy')) changes.push('add seenBy: {}');
-        if (doc.hasOwnProperty('pursued') && typeof doc.pursued === 'boolean') {
-          changes.push(`convert pursued: ${doc.pursued} → {}`);
-        }
+        if (!isObject(doc.archived)) changes.push('archived → {}');
+        if (!isObject(doc.userSaves)) changes.push('userSaves → {}');
+        if (!isObject(doc.seenBy)) changes.push('seenBy → {}');
+        if (!isObject(doc.pursued)) changes.push('pursued → {}');
         console.log(`   ${doc.id}: ${changes.join(', ')}`);
       });
-      console.log(`\nRun without --dry-run to update ${docsNeedingUserFields.length} documents`);
+      console.log(`\nRun without --dry-run to update ${docs.length} documents`);
       return;
     }
 
-    // Update documents
     let updated = 0;
     let errors = 0;
     const errorDetails = [];
-    
-    console.log('\n🔧 Starting to update documents...');
-    
-    for (const doc of docsNeedingUserFields) {
+
+    for (const doc of docs) {
       try {
         let wasModified = false;
-        
-        // Add archived field if missing
-        if (!doc.hasOwnProperty('archived')) {
+
+        if (!isObject(doc.archived)) {
           doc.archived = {};
           wasModified = true;
         }
-        
-        // Add userSaves field if missing
-        if (!doc.hasOwnProperty('userSaves')) {
-          doc.userSaves = [];
-          wasModified = true;
-        } else if (!Array.isArray(doc.userSaves)) {
-          // Fix userSaves if it's not an array
-          doc.userSaves = [];
+        if (!isObject(doc.userSaves)) {
+          doc.userSaves = {};
           wasModified = true;
         }
-        
-        // Add seenBy field if missing
-        if (!doc.hasOwnProperty('seenBy')) {
+        if (!isObject(doc.seenBy)) {
           doc.seenBy = {};
           wasModified = true;
         }
-        
-        // Convert pursued from boolean to object if needed
-        if (doc.hasOwnProperty('pursued') && typeof doc.pursued === 'boolean') {
+        if (!isObject(doc.pursued)) {
           doc.pursued = {};
           wasModified = true;
         }
-        
-        // Only upsert if document was actually modified
+
         if (wasModified) {
           await container.items.upsert(doc);
           updated++;
-          
           if (updated % 50 === 0) {
             console.log(`   ✅ Updated ${updated} documents...`);
           }
         }
-        
       } catch (error) {
         errors++;
         errorDetails.push({
@@ -134,45 +102,44 @@ async function addUserFields() {
           error: error.message,
           partitionDate: doc.partitionDate
         });
-        
         if (errors <= 5) {
           console.error(`   ❌ Error updating document ${doc.id}:`, error.message);
         }
       }
     }
-    
-    console.log(`\n✅ User fields update complete!`);
+
+    console.log(`\n✅ Migration complete!`);
     console.log(`   Documents updated: ${updated}`);
     console.log(`   Errors: ${errors}`);
-    
+
     if (errors > 0) {
       console.log(`\n❌ Sample errors:`);
       errorDetails.slice(0, 3).forEach(err => {
         console.log(`   ${err.docId}: ${err.error}`);
       });
     }
-    
+
     // Verify the update
     console.log('\n🔍 Verifying update...');
-    const { resources: stillNeedingUserFields } = await container.items.query(
-      querySpec, 
+    const { resources: stillNeeding } = await container.items.query(
+      querySpec,
       { enableCrossPartitionQuery: true }
     ).fetchAll();
-    console.log(`   Documents still needing user fields: ${stillNeedingUserFields.length}`);
-    
-    if (stillNeedingUserFields.length === 0) {
-      console.log('🎉 All documents now have user interaction fields!');
+    console.log(`   Documents still needing migration: ${stillNeeding.length}`);
+
+    if (stillNeeding.length === 0) {
+      console.log('🎉 All documents now have correct user interaction fields!');
     }
-    
+
   } catch (error) {
-    console.error('💥 Update failed:', error);
+    console.error('💥 Migration failed:', error);
     throw error;
   }
 }
 
 async function main() {
   try {
-    await addUserFields();
+    await migrateUserFields();
   } catch (error) {
     console.error('💥 Script failed:', error);
     process.exit(1);
