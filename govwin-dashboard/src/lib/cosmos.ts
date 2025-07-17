@@ -123,11 +123,15 @@ class CosmosService {
         parameters.push({ name: `@psc${i}`, value: psc });
       });
     }
+    // ✅ Search-term filter (AND logic)
     if (filters.searchTerms.length > 0) {
-      const searchTermParams = filters.searchTerms.map((_, i) => `@searchTerm${i}`);
-      opportunityConditions.push(`c.searchTerm IN (${searchTermParams.join(', ')})`);
+      const termPlaceholders = filters.searchTerms
+        .map((_, i) => `@searchTerm${i}`)
+        .join(', ');
+      // exact case-sensitive match; use CONTAINS + LOWER() for fuzzy match
+      conditions.push(`c.searchTerm IN (${termPlaceholders})`);
       filters.searchTerms.forEach((term, i) => {
-        parameters.push({ name: `@searchTerm${i}`, value: term });
+        parameters.push({ name: `@searchTerm${i}`, value: term.trim() });
       });
     }
     if (opportunityConditions.length > 0) {

@@ -13,9 +13,11 @@ COPY . .
 RUN npx next build --no-lint   # TS errors already ignored in next.config.ts
 
 # ---------- runner ----------
-FROM gcr.io/distroless/nodejs20-debian12:nonroot AS runner
+# FROM gcr.io/distroless/nodejs20-debian12:nonroot AS runner
+FROM node:20 AS runner
 WORKDIR /app
 ENV NODE_ENV=production
+COPY .env.local .env.local
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/public ./public

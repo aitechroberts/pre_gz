@@ -23,6 +23,7 @@ import {
 import { OpportunityDocument } from '@/lib/types';
 import { useMarkSeen, useToggleSaved, useArchiveOpportunity, usePursueOpportunity } from '@/hooks/use-user-actions';
 import { format, parseISO } from 'date-fns';
+import { is } from 'date-fns/locale';
 
 interface OpportunityCardProps {
   opportunity: OpportunityDocument;
@@ -53,11 +54,12 @@ export function OpportunityCard({
   const pursueOpportunityMutation = usePursueOpportunity();
 
   // FIXED: Use object-based checks instead of array methods
-  const isSaved = (opportunity.userSaves || {})[userId] != null;
-  const isArchived = (opportunity.archived || {})[userId] != null;
-  const hasBeenSeen = (opportunity.seenBy || {})[userId] != null;
-  const isPursued = (opportunity.pursued || {})[userId] != null;
-  const seenByUsers = Object.keys(opportunity.seenBy || {});
+  const [isSaved, setSavedState] = useState((opportunity.userSaves || {})[userId] != null);
+  const [isArchived, setArchivedState] = useState((opportunity.archived || {})[userId] != null);
+  const [isPursued, setPursuedState] = useState((opportunity.pursued || {})[userId] != null);
+  const [hasBeenSeen, setSeenState] = useState((opportunity.seenBy || {})[userId] != null);
+  const [localSeenBy, setLocalSeenBy] = useState(Object.keys(opportunity.seenBy || {}));
+  const seenByUsers = localSeenBy;
 
   // Debug logging - FIXED: Add safety checks
   console.log('OpportunityCard Debug:', {
@@ -77,11 +79,23 @@ export function OpportunityCard({
   const handleCardExpanded = () => {
     console.log('Card expanded!', { opportunityId: opportunity.id, userId, hasBeenSeen });
     if (showSeenTracking && !hasBeenSeen) {
-      markSeenMutation.mutate({ 
-        opportunityId: opportunity.id, 
-        userId,
-        partitionDate: opportunity.partitionDate || opportunity.partitionKey // FIXED: fallback
-      });
+      markSeenMutation.mutate(
+        {
+          opportunityId: opportunity.id,
+          userId,
+          partitionDate: opportunity.partitionDate || opportunity.partitionKey,
+        },
+        {
+          onSuccess: (data) => {
+            if (data.success) {
+              setSeenState(true);
+              setLocalSeenBy((prev) =>
+                prev.includes(userId) ? prev : [...prev, userId]
+              );
+            }
+          },
+        }
+      );
     }
     onToggleExpanded?.();
   };
@@ -93,12 +107,20 @@ export function OpportunityCard({
       currentlyArchived: isArchived,
       partitionDate: opportunity.partitionDate 
     });
-    archiveOpportunityMutation.mutate({ 
+    console.log({ isArchived });
+    const result = archiveOpportunityMutation.mutate({ 
       opportunityId: opportunity.id, 
       userId,
-      partitionDate: opportunity.partitionDate || opportunity.partitionKey // FIXED: fallback
+      partitionDate: opportunity.partitionDate || opportunity.partitionKey,
+      isArchived: isArchived // Pass current state to toggle
+    }, {
+      onSuccess: (data) => {
+        if (data.success) {
+          setArchivedState(!isArchived); 
+        } 
+      }
     });
-  };
+  }
 
   const handleToggleSaved = () => {
     console.log('Save button clicked!', { 
@@ -111,6 +133,12 @@ export function OpportunityCard({
       opportunityId: opportunity.id, 
       userId,
       partitionDate: opportunity.partitionDate || opportunity.partitionKey // FIXED: fallback
+    }, {
+      onSuccess: (data) => {
+        if (data.success) {
+          setSavedState(!isSaved); 
+        } 
+      }
     });
   };
 
@@ -125,6 +153,12 @@ export function OpportunityCard({
       opportunityId: opportunity.id, 
       userId,
       partitionDate: opportunity.partitionDate || opportunity.partitionKey // FIXED: fallback
+    }, {
+      onSuccess: (data) => {
+        if (data.success) {
+          setPursuedState(!isPursued);
+        }
+      }
     });
   };
   

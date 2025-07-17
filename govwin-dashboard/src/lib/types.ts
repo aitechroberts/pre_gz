@@ -34,7 +34,7 @@ export interface OpportunityDocument {
   competitionTypes?: string[];
   // User interaction tracking (as objects of userId->timestamp)
   userSaves: { [userId: string]: string };
-  archived: { [userId: string]: string };
+  archived: { [userId: string]: string }; 
   pursued: { [userId: string]: string };
   seenBy: { [userId: string]: string };
   // (Removed old `relevant` boolean field)

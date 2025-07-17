@@ -8,9 +8,9 @@ export async function PUT(
   context: { params: { id: string } }
 ) {
   try {
-    const { id } = await context.params;           // ✅ await before use
+    const { id } = await context.params;
     const { userId, partitionDate } = await request.json();
-    
+
     if (!userId || !partitionDate) {
       return NextResponse.json(
         { error: 'userId and partitionDate are required' },
@@ -28,7 +28,7 @@ export async function PUT(
       userId,
       timestamp: new Date().toISOString(),
     });
-    
+
     return NextResponse.json({ 
       success: true,
       archived: newArchivedState,
@@ -38,8 +38,8 @@ export async function PUT(
   } catch (error) {
     console.error('Error in archive route:', error);
     return NextResponse.json(
-      { error: 'Internal server error' }, 
-      { status: 500 }
+      { error: "Internal server error", success: false },
+      { status: 500 },
     );
   }
 }

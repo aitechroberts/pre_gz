@@ -1,6 +1,7 @@
 // src/hooks/use-user-actions.ts
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { OpportunityDocument } from '@/lib/types';
+import { is } from 'date-fns/locale';
 
 // Remove all WebSocket imports and emitOpportunityAction calls
 
@@ -129,10 +130,11 @@ export function useArchiveOpportunity() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ opportunityId, userId, partitionDate }: { 
+    mutationFn: async ({ opportunityId, userId, partitionDate, isArchived }: { 
       opportunityId: string; 
       userId: string; 
       partitionDate: string; 
+      isArchived: boolean;
     }) => {
       const response = await fetch(`/api/opportunities/${opportunityId}/archive`, {
         method: 'PUT',
@@ -145,7 +147,7 @@ export function useArchiveOpportunity() {
       if (!response.ok) {
         throw new Error('Failed to toggle archive state');
       }
-
+      isArchived = !isArchived; // Toggle the archived state
       return response.json();
     },
     onSuccess: (data, variables) => {
