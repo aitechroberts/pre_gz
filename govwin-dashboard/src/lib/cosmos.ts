@@ -141,9 +141,9 @@ class CosmosService {
     // Seen filter (global: any user)
     if (filters.seenFilter.length === 1) {
       const filterVal = filters.seenFilter[0];
-      if (filterVal === 'seen') {
+      if (filterVal === 'Seen') {
         conditions.push('IS_DEFINED(c.seenBy) AND c.seenBy != {}');
-      } else if (filterVal === 'unseen') {
+      } else if (filterVal === 'Unseen') {
         conditions.push('(NOT IS_DEFINED(c.seenBy) OR c.seenBy = {})');
       }
     }
@@ -151,16 +151,16 @@ class CosmosService {
     // Relevant filter (global: saved/archived/pursued/unreviewed)
     if (filters.relevantFilter.length > 0) {
       const relevantConditions: string[] = [];
-      if (filters.relevantFilter.includes('saved')) {
+      if (filters.relevantFilter.includes('Saved')) {
         relevantConditions.push('IS_DEFINED(c.userSaves) AND c.userSaves != {}');
       }
-      if (filters.relevantFilter.includes('archived')) {
+      if (filters.relevantFilter.includes('Archived')) {
         relevantConditions.push('IS_DEFINED(c.archived) AND c.archived != {}');
       }
-      if (filters.relevantFilter.includes('pursued')) {
+      if (filters.relevantFilter.includes('Pursued')) {
         relevantConditions.push('IS_DEFINED(c.pursued) AND c.pursued != {}');
       }
-      if (filters.relevantFilter.includes('unreviewed')) {
+      if (filters.relevantFilter.includes('Unreviewed')) {
         relevantConditions.push('((NOT IS_DEFINED(c.userSaves) OR c.userSaves = {}) AND (NOT IS_DEFINED(c.archived) OR c.archived = {}) AND (NOT IS_DEFINED(c.pursued) OR c.pursued = {}))');
       }
       if (relevantConditions.length > 0) {

@@ -72,7 +72,7 @@ function SavedOpportunitiesContent() {
     status: [],
     searchTerms: [],
     seenFilter: [],
-    relevantFilter: ['saved'], // ← ONLY DIFFERENCE: Default to ["saved"] array
+    relevantFilter: ['Saved'], // ← ONLY DIFFERENCE: Default to ["Saved"] array
   };
 
   // Draft filters (what user is editing - doesn't trigger API calls)
